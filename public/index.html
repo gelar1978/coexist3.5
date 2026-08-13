@@ -377,6 +377,14 @@
             display: block;
         }
 
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            align-items: start;
+            width: 100%;
+        }
+
         /* ==================== CHANGE PASSWORD FORM ==================== */
         .change-password-form {
             max-width: 500px;
@@ -1348,38 +1356,70 @@
             </div>
         </div>
 
-        <!-- ==================== PAGE: CHANGE PASSWORD ==================== -->
+        <!-- ==================== PAGE: CHANGE PASSWORD & SECURITY KEY ==================== -->
         <div class="page-section" id="page-profile">
-            <div class="card change-password-form">
-                <h3>🔑 Ubah Password</h3>
-                <p class="card-subtitle">Ganti password akun Anda untuk keamanan yang lebih baik</p>
+            <div class="profile-grid">
+                <!-- Card 1: Change Password -->
+                <div class="card change-password-form" style="max-width: 100%; margin: 0;">
+                    <h3>🔑 Ubah Password</h3>
+                    <p class="card-subtitle" style="margin-bottom: 20px; color: #718096; font-size: 14px;">Ganti password akun Anda untuk keamanan yang lebih baik</p>
 
-                <form id="changePasswordForm">
-                    <div class="form-group">
-                        <label>Password Saat Ini</label>
-                        <input type="password" id="currentPassword" required placeholder="Masukkan password lama">
-                    </div>
-                    <div class="form-group">
-                        <label>Password Baru (min 6 karakter)</label>
-                        <input type="password" id="newPassword" required placeholder="Buat password baru" minlength="6">
-                        <div class="password-strength" id="strengthBar"></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Konfirmasi Password Baru</label>
-                        <input type="password" id="confirmPassword" required placeholder="Ulangi password baru">
-                    </div>
-                    <button type="submit" class="btn-success" id="changePassBtn">
-                        <i class="fas fa-save"></i> Simpan Perubahan
-                    </button>
-                </form>
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label>Password Saat Ini</label>
+                            <input type="password" id="currentPassword" required placeholder="Masukkan password lama">
+                        </div>
+                        <div class="form-group">
+                            <label>Password Baru (min 6 karakter)</label>
+                            <input type="password" id="newPassword" required placeholder="Buat password baru" minlength="6">
+                            <div class="password-strength" id="strengthBar"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Konfirmasi Password Baru</label>
+                            <input type="password" id="confirmPassword" required placeholder="Ulangi password baru">
+                        </div>
+                        <button type="submit" class="btn-success" id="changePassBtn">
+                            <i class="fas fa-save"></i> Simpan Perubahan
+                        </button>
+                    </form>
 
-                <div class="success-msg" id="changeSuccess">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="successMessage">Password berhasil diubah!</span>
+                    <div class="success-msg" id="changeSuccess">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="successMessage">Password berhasil diubah!</span>
+                    </div>
+                    <div class="error-msg-form" id="changeError">
+                        <i class="fas fa-times-circle"></i>
+                        <span id="errorMessage">Terjadi kesalahan</span>
+                    </div>
                 </div>
-                <div class="error-msg-form" id="changeError">
-                    <i class="fas fa-times-circle"></i>
-                    <span id="errorMessage">Terjadi kesalahan</span>
+
+                <!-- Card 2: Change Security Key -->
+                <div class="card change-password-form" style="max-width: 100%; margin: 0;">
+                    <h3>🛡️ Ubah Kata Kunci Keamanan</h3>
+                    <p class="card-subtitle" style="margin-bottom: 20px; color: #718096; font-size: 14px;">Perbarui kata kunci rahasia untuk mereset password saat lupa</p>
+
+                    <form id="changeSecurityForm">
+                        <div class="form-group">
+                            <label>Password Akun Saat Ini</label>
+                            <input type="password" id="securityFormPassword" required placeholder="Masukkan password akun Anda">
+                        </div>
+                        <div class="form-group">
+                            <label>Kata Kunci Keamanan Baru</label>
+                            <input type="text" id="newSecurityKey" required placeholder="Masukkan kata kunci keamanan baru" minlength="3">
+                        </div>
+                        <button type="submit" class="btn-success" id="changeSecurityBtn" style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);">
+                            <i class="fas fa-key"></i> Perbarui Kata Keamanan
+                        </button>
+                    </form>
+
+                    <div class="success-msg" id="securitySuccess">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="securitySuccessMessage">Kata kunci keamanan berhasil diperbarui!</span>
+                    </div>
+                    <div class="error-msg-form" id="securityError">
+                        <i class="fas fa-times-circle"></i>
+                        <span id="securityErrorMessage">Terjadi kesalahan</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1471,10 +1511,23 @@
             }
 
             // Fallback mode statis untuk GitHub Pages (bebas diakses publik):
+            const currentUserStr = localStorage.getItem('coexist_current_user');
+            let displayName = 'Tim Coexist3.5';
+            if (currentUserStr) {
+                try {
+                    const currentUser = JSON.parse(currentUserStr);
+                    displayName = currentUser.fullName || currentUser.name || currentUser.username || 'Tim Coexist3.5';
+                } catch(e) {
+                    console.log('Gagal parse user lokal', e);
+                }
+            }
+            if (displayName) {
+                displayName = displayName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            }
             const userNameElem = document.getElementById('userName');
-            if (userNameElem) userNameElem.textContent = 'Tim Coexist3.5';
+            if (userNameElem) userNameElem.textContent = displayName;
             const userAvatarElem = document.getElementById('userAvatar');
-            if (userAvatarElem) userAvatarElem.textContent = 'C';
+            if (userAvatarElem) userAvatarElem.textContent = displayName.charAt(0).toUpperCase();
         }
         checkUser();
 
@@ -1482,6 +1535,7 @@
         async function logout() {
             if (!confirm('Apakah Anda yakin ingin keluar?')) return;
 
+            localStorage.removeItem('coexist_current_user');
             try {
                 const response = await fetch('/api/auth/logout', {
                     method: 'POST',
@@ -1581,33 +1635,192 @@
                         body: JSON.stringify({currentPassword, newPassword, confirmPassword})
                     });
 
-                    const data = await response.json();
-
-                    if (data.success) {
-                        if (successMsg) {
-                            successMsg.querySelector('#successMessage').textContent = data.message;
-                            successMsg.classList.add('show');
-                        }
-                        changeForm.reset();
-                        if (strengthBar) {
-                            strengthBar.className = 'password-strength';
-                            strengthBar.style.width = '0%';
-                        }
-                    } else {
-                        if (errorMsg) {
-                            errorMsg.querySelector('#errorMessage').textContent = data.message || 'Terjadi kesalahan';
-                            errorMsg.classList.add('show');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            if (successMsg) {
+                                successMsg.querySelector('#successMessage').textContent = data.message;
+                                successMsg.classList.add('show');
+                            }
+                            changeForm.reset();
+                            if (strengthBar) {
+                                strengthBar.className = 'password-strength';
+                                strengthBar.style.width = '0%';
+                            }
+                            return;
+                        } else {
+                            if (errorMsg) {
+                                errorMsg.querySelector('#errorMessage').textContent = data.message || 'Terjadi kesalahan';
+                                errorMsg.classList.add('show');
+                            }
+                            return;
                         }
                     }
                 } catch (err) {
-                    if (errorMsg) {
-                        errorMsg.querySelector('#errorMessage').textContent = 'Terjadi kesalahan koneksi ke server';
-                        errorMsg.classList.add('show');
-                    }
+                    console.log('🌐 Mode Statis / GitHub Pages Mode - Ganti Password');
                 } finally {
                     if (changeBtn) {
                         changeBtn.disabled = false;
                         changeBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+                    }
+                }
+
+                // Fallback Lokal (LocalStorage)
+                const currentUserStr = localStorage.getItem('coexist_current_user');
+                if (currentUserStr) {
+                    try {
+                        const currentUser = JSON.parse(currentUserStr);
+                        const users = JSON.parse(localStorage.getItem('coexist_users') || '[]');
+                        const userIdx = users.findIndex(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+                        
+                        if (userIdx !== -1) {
+                            if (users[userIdx].password === currentPassword) {
+                                users[userIdx].password = newPassword;
+                                localStorage.setItem('coexist_users', JSON.stringify(users));
+                                currentUser.password = newPassword;
+                                localStorage.setItem('coexist_current_user', JSON.stringify(currentUser));
+                                
+                                if (successMsg) {
+                                    successMsg.querySelector('#successMessage').textContent = 'Password berhasil diperbarui secara lokal!';
+                                    successMsg.classList.add('show');
+                                }
+                                changeForm.reset();
+                                if (strengthBar) {
+                                    strengthBar.className = 'password-strength';
+                                    strengthBar.style.width = '0%';
+                                }
+                            } else {
+                                if (errorMsg) {
+                                    errorMsg.querySelector('#errorMessage').textContent = 'Password saat ini salah!';
+                                    errorMsg.classList.add('show');
+                                }
+                            }
+                        } else {
+                            if (errorMsg) {
+                                errorMsg.querySelector('#errorMessage').textContent = 'User tidak ditemukan di database lokal.';
+                                errorMsg.classList.add('show');
+                            }
+                        }
+                    } catch(e) {
+                        if (errorMsg) {
+                            errorMsg.querySelector('#errorMessage').textContent = 'Gagal memproses data keamanan lokal.';
+                            errorMsg.classList.add('show');
+                        }
+                    }
+                } else {
+                    if (errorMsg) {
+                        errorMsg.querySelector('#errorMessage').textContent = 'Anda belum login. Silakan login kembali.';
+                        errorMsg.classList.add('show');
+                    }
+                }
+            });
+        }
+
+        // ==================== CHANGE SECURITY KEY ====================
+        const changeSecurityForm = document.getElementById('changeSecurityForm');
+        if (changeSecurityForm) {
+            changeSecurityForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const secSuccessMsg = document.getElementById('securitySuccess');
+                const secErrorMsg = document.getElementById('securityError');
+                if (secSuccessMsg) secSuccessMsg.classList.remove('show');
+                if (secErrorMsg) secErrorMsg.classList.remove('show');
+
+                const passwordVal = document.getElementById('securityFormPassword').value;
+                const newSecurityKeyVal = document.getElementById('newSecurityKey').value.trim();
+
+                if (newSecurityKeyVal.length < 3) {
+                    if (secErrorMsg) {
+                        secErrorMsg.querySelector('#securityErrorMessage').textContent = 'Kata kunci baru minimal 3 karakter!';
+                        secErrorMsg.classList.add('show');
+                    }
+                    return;
+                }
+
+                const changeSecBtn = document.getElementById('changeSecurityBtn');
+                if (changeSecBtn) {
+                    changeSecBtn.disabled = true;
+                    changeSecBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+                }
+
+                // Coba API backend dulu
+                try {
+                    const response = await fetch('/api/auth/change-security', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({password: passwordVal, securityKey: newSecurityKeyVal})
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            if (secSuccessMsg) {
+                                secSuccessMsg.querySelector('#securitySuccessMessage').textContent = data.message;
+                                secSuccessMsg.classList.add('show');
+                            }
+                            changeSecurityForm.reset();
+                            return;
+                        } else {
+                            if (secErrorMsg) {
+                                secErrorMsg.querySelector('#securityErrorMessage').textContent = data.message || 'Terjadi kesalahan';
+                                secErrorMsg.classList.add('show');
+                            }
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.log('🌐 Mode Statis / GitHub Pages Mode - Ganti Kata Kunci Keamanan');
+                } finally {
+                    if (changeSecBtn) {
+                        changeSecBtn.disabled = false;
+                        changeSecBtn.innerHTML = '<i class="fas fa-key"></i> Perbarui Kata Keamanan';
+                    }
+                }
+
+                // Fallback Lokal (LocalStorage)
+                const currentUserStr = localStorage.getItem('coexist_current_user');
+                if (currentUserStr) {
+                    try {
+                        const currentUser = JSON.parse(currentUserStr);
+                        const users = JSON.parse(localStorage.getItem('coexist_users') || '[]');
+                        const userIdx = users.findIndex(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+                        
+                        if (userIdx !== -1) {
+                            if (users[userIdx].password === passwordVal) {
+                                users[userIdx].securityKey = newSecurityKeyVal;
+                                localStorage.setItem('coexist_users', JSON.stringify(users));
+                                currentUser.securityKey = newSecurityKeyVal;
+                                localStorage.setItem('coexist_current_user', JSON.stringify(currentUser));
+                                
+                                if (secSuccessMsg) {
+                                    secSuccessMsg.querySelector('#securitySuccessMessage').textContent = 'Kata kunci keamanan berhasil diperbarui!';
+                                    secSuccessMsg.classList.add('show');
+                                }
+                                changeSecurityForm.reset();
+                            } else {
+                                if (secErrorMsg) {
+                                    secErrorMsg.querySelector('#securityErrorMessage').textContent = 'Password akun salah!';
+                                    secErrorMsg.classList.add('show');
+                                }
+                            }
+                        } else {
+                            if (secErrorMsg) {
+                                secErrorMsg.querySelector('#securityErrorMessage').textContent = 'User tidak ditemukan di database lokal.';
+                                secErrorMsg.classList.add('show');
+                            }
+                        }
+                    } catch(e) {
+                        if (secErrorMsg) {
+                            secErrorMsg.querySelector('#securityErrorMessage').textContent = 'Gagal memproses data keamanan lokal.';
+                            secErrorMsg.classList.add('show');
+                        }
+                    }
+                } else {
+                    if (secErrorMsg) {
+                        secErrorMsg.querySelector('#securityErrorMessage').textContent = 'Anda belum login. Silakan login kembali.';
+                        secErrorMsg.classList.add('show');
                     }
                 }
             });
