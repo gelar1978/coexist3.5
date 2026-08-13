@@ -1455,15 +1455,19 @@
                     method: 'POST',
                     credentials: 'include'
                 });
-                const data = await response.json();
-                if (data.success) {
-                    window.location.href = '/login.html';
-                } else {
-                    alert('Gagal logout: ' + data.message);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
                 }
             } catch (err) {
-                alert('Terjadi kesalahan saat logout');
+                console.log('🌐 Logout dalam mode statis / GitHub Pages');
             }
+
+            // Fallback mulus untuk GitHub Pages / mode statis
+            window.location.href = 'login.html';
         }
 
         // ==================== CHANGE PASSWORD ====================
