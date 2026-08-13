@@ -1623,26 +1623,39 @@
             // Default center: Bandung (-6.9175, 107.6191)
             const bandungCenter = [-6.9175, 107.6191];
 
-            // Tile layers
+            // Tile layers (noWrap: true prevents world map repetition)
             const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                minZoom: 5,
                 maxZoom: 19,
+                noWrap: true,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             });
 
             const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                minZoom: 5,
                 maxZoom: 19,
-                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and GIS User Community'
+                noWrap: true,
+                attribution: 'Tiles &copy; Esri'
             });
 
             const googleHybridLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                minZoom: 5,
                 maxZoom: 20,
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                noWrap: true,
                 attribution: 'Map data &copy; Google Maps'
             });
 
+            // Indonesia Boundary Constraint to prevent zooming out to world globe
+            const indonesiaBounds = L.latLngBounds([-11.5, 94.0], [6.5, 141.5]);
+
             map = L.map('map', {
                 center: bandungCenter,
-                zoom: 12,
+                zoom: 11,
+                minZoom: 6,
+                maxZoom: 19,
+                maxBounds: indonesiaBounds,
+                maxBoundsViscosity: 0.9,
                 layers: [streetLayer]
             });
 
