@@ -1624,26 +1624,26 @@
         async function initMap() {
             if (map) return; // Prevent double init
 
-            // Default center: Bandung, Indonesia (-6.9175, 107.6191)
-            const bandungCenter = [-6.9175, 107.6191];
+            // Default center: Indonesia Archipelago (-2.5489, 118.0149)
+            const indonesiaCenter = [-2.5489, 118.0149];
 
-            // Tile layers with noWrap and minZoom to prevent world repeat globe bug
+            // Tile layers with noWrap and minZoom: 2 (single world globe view when zoomed out)
             const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                minZoom: 6,
+                minZoom: 2,
                 maxZoom: 19,
                 noWrap: true,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             });
 
             const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                minZoom: 6,
+                minZoom: 2,
                 maxZoom: 19,
                 noWrap: true,
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and GIS User Community'
             });
 
             const googleHybridLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                minZoom: 6,
+                minZoom: 2,
                 maxZoom: 20,
                 noWrap: true,
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
@@ -1651,9 +1651,9 @@
             });
 
             map = L.map('map', {
-                center: bandungCenter,
-                zoom: 12,
-                minZoom: 8,
+                center: indonesiaCenter,
+                zoom: 5,
+                minZoom: 2,
                 maxZoom: 19,
                 worldCopyJump: false,
                 layers: [streetLayer]
@@ -1702,8 +1702,8 @@
                 updateStatCards(allStationsData);
                 renderStations(allStationsData);
 
-                // Focus directly on Indonesia (Bandung & Jawa Barat stations)
-                focusBandung();
+                // Focus directly on Indonesia (all archipelago)
+                focusIndonesia();
 
                 document.getElementById('mapStatus').textContent = `✅ Berhasil memuat ${allStationsData.length} stasiun bumi pada peta Indonesia.`;
             } catch (err) {
@@ -1714,7 +1714,7 @@
             setTimeout(() => {
                 if (map) {
                     map.invalidateSize();
-                    focusBandung();
+                    focusIndonesia();
                 }
             }, 200);
 
@@ -1935,24 +1935,16 @@
 
             renderStations(filtered);
             document.getElementById('mapStatus').textContent = `🔍 Menampilkan ${filtered.length} dari ${allStationsData.length} stasiun bumi.`;
-
-            if (filtered.length > 0 && filtered.length < allStationsData.length) {
-                const validPts = filtered.map(s => [s.lat, s.lng]);
-                if (validPts.length > 0) {
-                    const bounds = L.latLngBounds(validPts);
-                    map.fitBounds(bounds.pad(0.1));
-                }
-            }
         }
 
         function searchLocation() {
             filterMapData();
         }
 
-        function focusBandung() {
+        function focusIndonesia() {
             if (map) {
-                map.setView([-6.9175, 107.6191], 12);
-                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke Bandung & Jawa Barat (Indonesia)';
+                map.setView([-2.5489, 118.0149], 5);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke seluruh wilayah Indonesia';
             }
         }
 
