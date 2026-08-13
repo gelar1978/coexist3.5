@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Coexist3.5 - Kajian Koeksistensi & Refarming Pita 3.5 GHz</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leaflet CSS & MarkerCluster CSS -->
@@ -14,7 +17,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <!-- Embedded Ground Stations Dataset -->
-    <script src="data/stasiun_bumi.js"></script>
+    <script src="data/stasiun_bumi.js?v=2.0"></script>
     <style>
         * {
             margin: 0;
@@ -1649,8 +1652,8 @@
 
             map = L.map('map', {
                 center: bandungCenter,
-                zoom: 11,
-                minZoom: 6,
+                zoom: 12,
+                minZoom: 8,
                 maxZoom: 19,
                 worldCopyJump: false,
                 layers: [streetLayer]
@@ -1948,18 +1951,8 @@
 
         function focusBandung() {
             if (map) {
-                if (allStationsData && allStationsData.length > 0) {
-                    const jabarPts = allStationsData
-                        .filter(s => typeof s.lat === 'number' && typeof s.lng === 'number' && s.lat >= -8.0 && s.lat <= -6.0 && s.lng >= 106.0 && s.lng <= 109.0)
-                        .map(s => [s.lat, s.lng]);
-                    if (jabarPts.length > 0) {
-                        map.fitBounds(L.latLngBounds(jabarPts).pad(0.05));
-                        document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Bandung & Jawa Barat';
-                        return;
-                    }
-                }
-                map.setView([-6.9175, 107.6191], 11);
-                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke Bandung';
+                map.setView([-6.9175, 107.6191], 12);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke Bandung & Jawa Barat (Indonesia)';
             }
         }
 
