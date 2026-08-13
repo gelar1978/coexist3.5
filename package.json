@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "npm run copy && nodemon server.js",
+    "copy": "cp index.html public/index.html && cp login.html public/login.html && cp register.html public/register.html && cp reset-password.html public/reset-password.html && cp change-password.html public/change-password.html"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

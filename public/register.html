@@ -7,11 +7,7 @@
     <title>Daftar Akun - Coexist3.5</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,16 +21,13 @@
             overflow: hidden;
         }
 
-        /* Background Animasi */
         body::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,.05) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255,255,255,.05) 0%, transparent 50%);
             animation: rotateBg 20s linear infinite;
             z-index: 0;
         }
@@ -44,121 +37,66 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Floating Bubbles */
         .bubble {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,.05);
             animation: float 15s infinite ease-in-out;
             z-index: 0;
         }
-
-        .bubble:nth-child(1) {
-            width: 200px;
-            height: 200px;
-            top: -50px;
-            left: -50px;
-            animation-delay: 0s;
-        }
-
-        .bubble:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            bottom: -30px;
-            right: -30px;
-            animation-delay: -5s;
-        }
-
-        .bubble:nth-child(3) {
-            width: 100px;
-            height: 100px;
-            top: 50%;
-            left: 80%;
-            animation-delay: -10s;
-        }
+        .bubble:nth-child(1) { width:200px; height:200px; top:-50px; left:-50px; animation-delay:0s; }
+        .bubble:nth-child(2) { width:150px; height:150px; bottom:-30px; right:-30px; animation-delay:-5s; }
+        .bubble:nth-child(3) { width:100px; height:100px; top:50%; left:80%; animation-delay:-10s; }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(30px, -30px) scale(1.1); }
-            50% { transform: translate(-20px, 20px) scale(0.9); }
-            75% { transform: translate(20px, 30px) scale(1.05); }
+            0%,100% { transform: translate(0,0) scale(1); }
+            25%  { transform: translate(30px,-30px) scale(1.1); }
+            50%  { transform: translate(-20px,20px) scale(0.9); }
+            75%  { transform: translate(20px,30px) scale(1.05); }
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255,255,.95);
             backdrop-filter: blur(20px);
             border-radius: 30px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 80px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.1);
             padding: 45px 40px;
-            max-width: 460px;
+            max-width: 470px;
             width: 100%;
             position: relative;
             z-index: 1;
-            animation: slideUp 0.8s ease-out;
+            animation: slideUp .8s ease-out;
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity:0; transform: translateY(40px) scale(.95); }
+            to   { opacity:1; transform: translateY(0) scale(1); }
         }
 
-        /* Logo/Icon */
-        .logo {
-            text-align: center;
-            margin-bottom: 10px;
-        }
+        .logo { text-align:center; margin-bottom:12px; }
 
         .logo-icon {
-            width: 75px;
-            height: 75px;
+            width: 75px; height: 75px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             margin: 0 auto 14px;
-            font-size: 36px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            font-size: 34px; color: white;
+            box-shadow: 0 10px 30px rgba(102,126,234,.4);
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.05); }
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
+        h1 { text-align:center; color:#333; font-size:24px; font-weight:700; margin-bottom:4px; }
 
-        .subtitle {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 28px;
-            font-weight: 400;
-        }
+        .subtitle { text-align:center; color:#888; font-size:14px; margin-bottom:26px; }
+        .subtitle span { color:#667eea; font-weight:600; }
 
-        .subtitle span {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-            position: relative;
-        }
+        .form-group { margin-bottom:16px; position:relative; }
 
         .form-group label {
             display: block;
@@ -167,35 +105,27 @@
             font-weight: 600;
             font-size: 13px;
         }
+        .form-group label i { margin-right:5px; color:#667eea; }
 
-        .form-group label i {
-            margin-right: 5px;
-            color: #667eea;
-        }
+        .input-wrapper { position:relative; display:flex; align-items:center; }
 
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-wrapper > i {
+        .input-wrapper > i.field-icon {
             position: absolute;
-            left: 15px;
+            left: 14px;
             color: #aaa;
-            font-size: 15px;
-            transition: color 0.3s;
+            font-size: 14px;
+            transition: color .3s;
             pointer-events: none;
         }
 
         .input-wrapper input {
             width: 100%;
-            padding: 13px 15px 13px 44px;
+            padding: 12px 14px 12px 42px;
             border: 2px solid #e8ecf1;
             border-radius: 12px;
             font-size: 14px;
             background: #f8f9fc;
-            transition: all 0.3s;
+            transition: all .3s;
             color: #333;
         }
 
@@ -203,52 +133,49 @@
             outline: none;
             border-color: #667eea;
             background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102,126,234,.1);
         }
 
-        .input-wrapper input:focus ~ i {
-            color: #667eea;
-        }
+        .input-wrapper input:focus ~ i.field-icon { color:#667eea; }
 
-        .input-wrapper .toggle-password {
+        .toggle-password {
             position: absolute;
-            right: 14px;
+            right: 13px;
             cursor: pointer;
             color: #aaa;
-            transition: color 0.3s;
+            transition: color .3s;
             background: none;
             border: none;
-            font-size: 15px;
+            font-size: 14px;
             padding: 0;
         }
+        .toggle-password:hover { color:#667eea; }
 
-        .input-wrapper .toggle-password:hover {
-            color: #667eea;
+        /* Security Hint Box */
+        .hint-box {
+            background: #fef9e7;
+            border: 1.5px solid #f9ca24;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #7d6608;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
         }
+        .hint-box i { font-size:14px; color:#f9ca24; margin-top:1px; flex-shrink:0; }
 
         /* Password strength */
-        .strength-bar-wrap {
-            height: 3px;
-            border-radius: 3px;
-            margin-top: 6px;
-            background: #e8ecf1;
-            overflow: hidden;
-        }
-
-        .strength-bar {
-            height: 100%;
-            border-radius: 3px;
-            width: 0%;
-            transition: all 0.4s ease;
-        }
-
-        .strength-bar.weak   { width: 25%; background: #dc3545; }
-        .strength-bar.medium { width: 55%; background: #ffc107; }
-        .strength-bar.strong { width: 100%; background: #28a745; }
+        .strength-bar-wrap { height:3px; border-radius:3px; margin-top:6px; background:#e8ecf1; overflow:hidden; }
+        .strength-bar { height:100%; border-radius:3px; width:0%; transition:all .4s ease; }
+        .strength-bar.weak   { width:25%;  background:#dc3545; }
+        .strength-bar.medium { width:55%;  background:#ffc107; }
+        .strength-bar.strong { width:100%; background:#28a745; }
 
         .btn-register {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -256,55 +183,34 @@
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all .3s;
             margin-top: 8px;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
+            letter-spacing: .5px;
         }
 
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-register:active {
-            transform: translateY(0);
-        }
-
-        .btn-register:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
+        .btn-register:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(102,126,234,.4); }
+        .btn-register:active { transform:translateY(0); }
+        .btn-register:disabled { opacity:.7; cursor:not-allowed; transform:none!important; box-shadow:none!important; }
 
         .btn-register .spinner {
             display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
             border-top: 3px solid white;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin .8s linear infinite;
             margin: 0 auto;
         }
-
-        .btn-register.loading .spinner {
-            display: block;
-        }
-
-        .btn-register.loading .btn-text {
-            display: none;
-        }
+        .btn-register.loading .spinner  { display:block; }
+        .btn-register.loading .btn-text { display:none; }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0%   { transform:rotate(0deg); }
+            100% { transform:rotate(360deg); }
         }
 
         .message {
-            margin-top: 18px;
+            margin-top: 16px;
             padding: 13px 16px;
             border-radius: 12px;
             font-size: 14px;
@@ -312,157 +218,85 @@
             align-items: center;
             gap: 10px;
         }
-
-        .message.show {
-            display: flex;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .message i {
-            font-size: 17px;
-            flex-shrink: 0;
-        }
+        .message.show    { display:flex; }
+        .message.success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+        .message.error   { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+        .message i       { font-size:16px; flex-shrink:0; }
 
         .divider {
-            display: flex;
-            align-items: center;
-            margin: 22px 0 18px;
-            color: #ccc;
-            font-size: 13px;
+            display: flex; align-items: center;
+            margin: 20px 0 16px;
+            color: #ccc; font-size: 13px;
         }
+        .divider::before, .divider::after { content:''; flex:1; height:1px; background:#e0e0e0; }
+        .divider::before { margin-right:15px; }
+        .divider::after  { margin-left:15px; }
 
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e0e0e0;
-        }
+        .auth-links { display:flex; justify-content:center; }
 
-        .divider::before { margin-right: 15px; }
-        .divider::after  { margin-left: 15px; }
-
-        .auth-links {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .auth-links a {
+        .login-link {
             color: #667eea;
             text-decoration: none;
             font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .auth-links a:hover {
-            color: #5a67d8;
-            text-decoration: underline;
-        }
-
-        .auth-links .login-link {
+            font-weight: 600;
             background: #f0f2ff;
             padding: 9px 24px;
             border-radius: 20px;
-            font-weight: 600;
+            transition: all .3s;
         }
+        .login-link:hover { background:#e0e4ff; }
 
-        .auth-links .login-link:hover {
-            background: #e0e4ff;
-            text-decoration: none;
-        }
+        .footer { text-align:center; margin-top:20px; padding-top:16px; border-top:1px solid #f0f0f0; color:#bbb; font-size:12px; }
+        .footer span { color:#667eea; }
 
-        .footer {
-            text-align: center;
-            margin-top: 22px;
-            padding-top: 18px;
-            border-top: 1px solid #f0f0f0;
-            color: #bbb;
-            font-size: 12px;
-        }
-
-        .footer span {
-            color: #667eea;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .container {
-                padding: 35px 22px;
-            }
-
-            h1 {
-                font-size: 22px;
-            }
-
-            .logo-icon {
-                width: 62px;
-                height: 62px;
-                font-size: 28px;
-            }
+        @media (max-width:480px) {
+            .container { padding:32px 20px; }
+            h1 { font-size:21px; }
+            .logo-icon { width:62px; height:62px; font-size:28px; }
         }
     </style>
 </head>
 
 <body>
-    <!-- Floating Bubbles -->
     <div class="bubble"></div>
     <div class="bubble"></div>
     <div class="bubble"></div>
 
     <div class="container">
-        <!-- Logo -->
         <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-user-plus"></i>
-            </div>
+            <div class="logo-icon"><i class="fas fa-user-plus"></i></div>
             <h1>Buat Akun Baru</h1>
             <p class="subtitle">Bergabung dengan <span>Coexist3.5</span></p>
         </div>
 
-        <!-- Form Registrasi -->
         <form id="registerForm" autocomplete="off">
+
             <div class="form-group">
-                <label for="username">
-                    <i class="fas fa-user"></i> Username
-                </label>
+                <label for="username"><i class="fas fa-user"></i>Username</label>
                 <div class="input-wrapper">
                     <input type="text" id="username" required placeholder="Pilih username unik Anda">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-user field-icon"></i>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="email">
-                    <i class="fas fa-envelope"></i> Email
-                </label>
+                <label for="email"><i class="fas fa-envelope"></i>Email</label>
                 <div class="input-wrapper">
                     <input type="email" id="email" required placeholder="contoh@email.com">
-                    <i class="fas fa-envelope"></i>
+                    <i class="fas fa-envelope field-icon"></i>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="password">
-                    <i class="fas fa-lock"></i> Password <small style="color:#aaa; font-weight:400">(min. 6 karakter)</small>
+                    <i class="fas fa-lock"></i>Password
+                    <small style="color:#aaa; font-weight:400">(min. 6 karakter)</small>
                 </label>
                 <div class="input-wrapper">
                     <input type="password" id="password" required placeholder="Buat password yang kuat" minlength="6">
-                    <i class="fas fa-lock"></i>
-                    <button type="button" class="toggle-password" onclick="togglePassword('password', 'toggleIcon1')">
-                        <i class="fas fa-eye" id="toggleIcon1"></i>
+                    <i class="fas fa-lock field-icon"></i>
+                    <button type="button" class="toggle-password" onclick="togglePwd('password','icon1')">
+                        <i class="fas fa-eye" id="icon1"></i>
                     </button>
                 </div>
                 <div class="strength-bar-wrap">
@@ -471,15 +305,31 @@
             </div>
 
             <div class="form-group">
-                <label for="confirmPassword">
-                    <i class="fas fa-shield-alt"></i> Konfirmasi Password
-                </label>
+                <label for="confirmPassword"><i class="fas fa-shield-alt"></i>Konfirmasi Password</label>
                 <div class="input-wrapper">
                     <input type="password" id="confirmPassword" required placeholder="Ulangi password Anda">
-                    <i class="fas fa-shield-alt"></i>
-                    <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', 'toggleIcon2')">
-                        <i class="fas fa-eye" id="toggleIcon2"></i>
+                    <i class="fas fa-shield-alt field-icon"></i>
+                    <button type="button" class="toggle-password" onclick="togglePwd('confirmPassword','icon2')">
+                        <i class="fas fa-eye" id="icon2"></i>
                     </button>
+                </div>
+            </div>
+
+            <!-- KATA KUNCI KEAMANAN -->
+            <div class="form-group">
+                <label for="securityKey"><i class="fas fa-key"></i>Kata Kunci Keamanan</label>
+                <div class="input-wrapper">
+                    <input type="text" id="securityKey" required
+                           placeholder="Contoh: nama hewan peliharaan pertama Anda"
+                           autocomplete="off">
+                    <i class="fas fa-key field-icon"></i>
+                </div>
+                <div class="hint-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>
+                        <strong>Penting!</strong> Kata kunci ini akan digunakan untuk memverifikasi identitas Anda
+                        saat reset password. Harap ingat dan rahasiakan kata kunci ini.
+                    </span>
                 </div>
             </div>
 
@@ -507,7 +357,7 @@
 
     <script>
         // ==================== TOGGLE PASSWORD ====================
-        function togglePassword(fieldId, iconId) {
+        function togglePwd(fieldId, iconId) {
             const input = document.getElementById(fieldId);
             const icon  = document.getElementById(iconId);
             if (input.type === 'password') {
@@ -521,98 +371,90 @@
 
         // ==================== PASSWORD STRENGTH ====================
         document.getElementById('password').addEventListener('input', function () {
-            const val = this.value;
             const bar = document.getElementById('strengthBar');
             bar.className = 'strength-bar';
-            if (val.length === 0) return;
-            if (val.length < 6) {
-                bar.classList.add('weak');
-            } else if (val.length < 10) {
-                bar.classList.add('medium');
-            } else {
-                bar.classList.add('strong');
-            }
+            if (!this.value.length) return;
+            if (this.value.length < 6)  bar.classList.add('weak');
+            else if (this.value.length < 10) bar.classList.add('medium');
+            else bar.classList.add('strong');
         });
 
-        // ==================== REGISTRASI ====================
-        const registerForm = document.getElementById('registerForm');
-        const messageEl    = document.getElementById('message');
-        const registerBtn  = document.getElementById('registerBtn');
+        // ==================== HELPER — ambil database user ====================
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('coexist_users') || '[]');
+        }
 
-        registerForm.addEventListener('submit', async (e) => {
+        function saveUsers(users) {
+            localStorage.setItem('coexist_users', JSON.stringify(users));
+        }
+
+        // ==================== REGISTER ====================
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
             const username        = document.getElementById('username').value.trim();
-            const email           = document.getElementById('email').value.trim();
+            const email           = document.getElementById('email').value.trim().toLowerCase();
             const password        = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-
-            // Reset message
-            messageEl.className = 'message';
-            messageEl.innerHTML = '';
-            messageEl.style.display = '';
+            const securityKey     = document.getElementById('securityKey').value.trim();
 
             // Validasi
-            if (!username || !email || !password || !confirmPassword) {
+            if (!username || !email || !password || !confirmPassword || !securityKey) {
                 showMsg('error', 'fa-exclamation-circle', 'Semua kolom wajib diisi!');
                 return;
             }
-
             if (password !== confirmPassword) {
                 showMsg('error', 'fa-times-circle', 'Konfirmasi password tidak cocok!');
                 return;
             }
-
             if (password.length < 6) {
                 showMsg('error', 'fa-times-circle', 'Password minimal 6 karakter!');
                 return;
             }
-
-            // Loading state
-            registerBtn.disabled = true;
-            registerBtn.classList.add('loading');
-
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password, confirmPassword })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        showMsg('success', 'fa-check-circle', data.message || 'Akun berhasil dibuat!');
-                        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
-                        return;
-                    } else {
-                        showMsg('error', 'fa-times-circle', data.message || 'Pendaftaran gagal.');
-                        registerBtn.disabled = false;
-                        registerBtn.classList.remove('loading');
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.log('🌐 Mode Statis / GitHub Pages');
+            if (securityKey.length < 3) {
+                showMsg('error', 'fa-times-circle', 'Kata kunci keamanan terlalu pendek (min. 3 karakter)!');
+                return;
             }
 
-            // Fallback statis (GitHub Pages) — simulasi sukses
-            showMsg('success', 'fa-check-circle', `✅ Akun "${username}" berhasil dibuat! Mengalihkan ke halaman login...`);
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.classList.add('loading');
+
+            // Cek duplikat username / email
+            const users = getUsers();
+            const exists = users.find(u =>
+                u.username.toLowerCase() === username.toLowerCase() ||
+                u.email === email
+            );
+
+            if (exists) {
+                showMsg('error', 'fa-times-circle', 'Username atau email sudah terdaftar!');
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                return;
+            }
+
+            // Simpan user baru ke localStorage
+            users.push({ username, email, password, securityKey });
+            saveUsers(users);
+
+            showMsg('success', 'fa-check-circle',
+                `✅ Akun "<strong>${username}</strong>" berhasil dibuat! Mengalihkan ke halaman login...`);
+
             setTimeout(() => { window.location.href = 'login.html'; }, 2000);
         });
 
-        function showMsg(type, icon, text) {
-            messageEl.className = `message ${type} show`;
-            messageEl.style.display = 'flex';
-            messageEl.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
-
-            registerBtn.disabled = false;
-            registerBtn.classList.remove('loading');
+        function showMsg(type, icon, html) {
+            const el = document.getElementById('message');
+            el.className = `message ${type} show`;
+            el.style.display = 'flex';
+            el.innerHTML = `<i class="fas ${icon}"></i><span>${html}</span>`;
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = false;
+            btn.classList.remove('loading');
         }
 
-        // Auto-focus
         document.getElementById('username').focus();
     </script>
 </body>
-
 </html>
