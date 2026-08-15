@@ -37,7 +37,7 @@ app.use(helmet({
 // CORS
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://domain-anda.com', 'https://www.domain-anda.com']
+        ? ['https://coexist35.harukaindonesia.id', 'https://harukaindonesia.id', 'https://www.harukaindonesia.id']
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
