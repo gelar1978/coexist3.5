@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { pool } = require('../db/database');
 const { authenticate } = require('../middleware/auth');
 
@@ -268,16 +269,49 @@ router.post('/forgot-password', async (req, res) => {
         );
 
         // Buat reset link
-        const resetLink = `http://localhost:${process.env.PORT || 3000}/reset-password?token=${resetToken}`;
+        const resetLink = process.env.NODE_ENV === 'production' 
+            ? `https://coexist35.harukaindonesia.id/reset-password.html?token=${resetToken}` 
+            : `http://localhost:${process.env.PORT || 3000}/reset-password.html?token=${resetToken}`;
 
         // Log untuk debugging
         console.log(`🔗 Link Reset Password untuk ${user.username}: ${resetLink}`);
         console.log(`📧 Email: ${email}`);
         console.log(`🔑 Token: ${resetToken}`);
 
-        // TODO: Kirim email dengan nodemailer
-        // Untuk sekarang, kita kirim token di response (hanya untuk demo)
-        // Di production, jangan kirim token di response!
+        // Konfigurasi transporter nodemailer
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT,
+            secure: process.env.SMTP_PORT == 465, // true untuk port 465, false untuk port lain
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: `"Coexist 3.5" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+            to: email,
+            subject: 'Reset Password Coexist 3.5',
+            text: `Halo ${user.username},\n\nAnda meminta untuk mereset password Anda.\n\nBerikut adalah token reset password Anda:\n${resetToken}\n\nMasukkan token tersebut pada halaman reset password untuk membuat password baru.\n\nAtau Anda bisa klik link berikut:\n${resetLink}\n\nJika Anda tidak meminta reset password, abaikan email ini.`,
+            html: `<p>Halo <strong>${user.username}</strong>,</p>
+                   <p>Anda meminta untuk mereset password Anda.</p>
+                   <p>Berikut adalah token reset password Anda:</p>
+                   <h3 style="background: #f4f4f4; padding: 10px; display: inline-block;">${resetToken}</h3>
+                   <p>Masukkan token tersebut pada halaman reset password untuk membuat password baru.</p>
+                   <p>Atau Anda bisa klik link berikut: <br> <a href="${resetLink}">${resetLink}</a></p>
+                   <p><small>Jika Anda tidak meminta reset password, abaikan email ini.</small></p>`
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+        } catch (mailErr) {
+            console.error('Gagal mengirim email:', mailErr);
+            return res.status(500).json({
+                success: false,
+                message: 'Gagal mengirim email reset password. Pastikan konfigurasi SMTP di .env benar.'
+            });
+        }
 
         // Simpan log permintaan reset
         try {
@@ -291,10 +325,7 @@ router.post('/forgot-password', async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Instruksi reset password telah dikirim ke email Anda',
-            // Hanya untuk demo! Di production HAPUS baris ini
-            token: resetToken,
-            resetLink: resetLink
+            message: 'Instruksi reset password dan token telah dikirim ke email Anda'
         });
 
     } catch (error) {
