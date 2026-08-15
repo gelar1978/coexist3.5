@@ -379,27 +379,17 @@
             else bar.classList.add('strong');
         });
 
-        // ==================== HELPER — ambil database user ====================
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('coexist_users') || '[]');
-        }
-
-        function saveUsers(users) {
-            localStorage.setItem('coexist_users', JSON.stringify(users));
-        }
-
         // ==================== REGISTER ====================
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const username        = document.getElementById('username').value.trim();
             const email           = document.getElementById('email').value.trim().toLowerCase();
             const password        = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const securityKey     = document.getElementById('securityKey').value.trim();
 
             // Validasi
-            if (!username || !email || !password || !confirmPassword || !securityKey) {
+            if (!username || !email || !password || !confirmPassword) {
                 showMsg('error', 'fa-exclamation-circle', 'Semua kolom wajib diisi!');
                 return;
             }
@@ -411,37 +401,37 @@
                 showMsg('error', 'fa-times-circle', 'Password minimal 6 karakter!');
                 return;
             }
-            if (securityKey.length < 3) {
-                showMsg('error', 'fa-times-circle', 'Kata kunci keamanan terlalu pendek (min. 3 karakter)!');
-                return;
-            }
 
             const btn = document.getElementById('registerBtn');
             btn.disabled = true;
             btn.classList.add('loading');
 
-            // Cek duplikat username / email
-            const users = getUsers();
-            const exists = users.find(u =>
-                u.username.toLowerCase() === username.toLowerCase() ||
-                u.email === email
-            );
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        confirmPassword
+                    })
+                });
 
-            if (exists) {
-                showMsg('error', 'fa-times-circle', 'Username atau email sudah terdaftar!');
-                btn.disabled = false;
-                btn.classList.remove('loading');
-                return;
+                const data = await response.json();
+
+                if (data.success) {
+                    showMsg('success', 'fa-check-circle',
+                        `✅ Akun "<strong>${username}</strong>" berhasil dibuat! Mengalihkan ke halaman login...`);
+
+                    setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                } else {
+                    showMsg('error', 'fa-times-circle', data.message || 'Registrasi gagal.');
+                }
+            } catch (error) {
+                console.error(error);
+                showMsg('error', 'fa-times-circle', 'Terjadi kesalahan jaringan.');
             }
-
-            // Simpan user baru ke localStorage
-            users.push({ username, email, password, securityKey });
-            saveUsers(users);
-
-            showMsg('success', 'fa-check-circle',
-                `✅ Akun "<strong>${username}</strong>" berhasil dibuat! Mengalihkan ke halaman login...`);
-
-            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
         });
 
         function showMsg(type, icon, html) {

@@ -614,48 +614,24 @@
                     body: JSON.stringify({ username, password })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        messageEl.className = 'message success show';
-                        messageEl.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 800);
-                        return;
-                    }
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageEl.className = 'message success show';
+                    messageEl.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 800);
+                } else {
+                    messageEl.className = 'message error show';
+                    messageEl.innerHTML = `<i class="fas fa-times-circle"></i> ${data.message || 'Username/Email atau password salah!'}`;
+                    loginBtn.disabled = false;
+                    loginBtn.classList.remove('loading');
                 }
             } catch (err) {
-                console.log('🌐 Mode Statis / GitHub Pages Mode');
-            }
-
-            const users = JSON.parse(localStorage.getItem('coexist_users') || '[]');
-            // Default user fallback jika belum ada yang registrasi
-            if (users.length === 0) {
-                users.push({
-                    username: 'admin',
-                    email: 'admin@coexist.com',
-                    password: 'admin123',
-                    securityKey: 'coexist'
-                });
-                localStorage.setItem('coexist_users', JSON.stringify(users));
-            }
-
-            const matchedUser = users.find(u => 
-                (u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) && 
-                u.password === password
-            );
-
-            if (matchedUser) {
-                localStorage.setItem('coexist_current_user', JSON.stringify(matchedUser));
-                messageEl.className = 'message success show';
-                messageEl.innerHTML = '<i class="fas fa-check-circle"></i> Login Berhasil! Pengalihan ke Dashboard...';
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 800);
-            } else {
+                console.error(err);
                 messageEl.className = 'message error show';
-                messageEl.innerHTML = '<i class="fas fa-times-circle"></i> Username/Email atau password salah!';
+                messageEl.innerHTML = '<i class="fas fa-times-circle"></i> Terjadi kesalahan jaringan!';
                 loginBtn.disabled = false;
                 loginBtn.classList.remove('loading');
             }
