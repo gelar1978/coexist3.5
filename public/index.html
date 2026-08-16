@@ -1243,6 +1243,34 @@
             <div class="map-stats-grid" id="dynamicStatsGrid">
                 <!-- Data akan di-generate secara dinamis oleh updateStatCards() -->
             </div>
+            <div class="map-stats-grid" id="btsStatsGrid" style="margin-top: 15px;">
+                <!-- Data BTS akan di-generate di sini -->
+            </div>
+
+            <!-- Modal Table Overlay -->
+            <div id="tableModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; backdrop-filter:blur(4px);">
+                <div style="background:white; margin:2% auto; padding:20px; width:95%; height:90%; border-radius:12px; display:flex; flex-direction:column; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+                        <h2 id="tableModalTitle" style="margin:0; font-size:20px; color:#1e293b;"><i class="fas fa-table"></i> Data Stasiun BTS</h2>
+                        <button onclick="document.getElementById('tableModalOverlay').style.display='none'" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:bold;"><i class="fas fa-times"></i> Tutup & Kembali ke Peta</button>
+                    </div>
+                    <div style="margin-bottom:15px; display:flex; gap:10px;">
+                        <input type="text" id="tableSearch" placeholder="Cari dalam tabel ini..." onkeyup="filterModalTable()" style="padding:10px 15px; border:1px solid #cbd5e1; border-radius:6px; flex:1; font-size:14px;">
+                    </div>
+                    <div style="flex:1; overflow:auto; border:1px solid #e2e8f0; border-radius:8px;">
+                        <table class="station-table" style="width:100%; border-collapse:collapse; min-width:800px;">
+                            <thead style="position:sticky; top:0; background:#f8fafc; box-shadow:0 1px 2px rgba(0,0,0,0.1);">
+                                <tr id="tableModalHead" style="text-align:left;">
+                                    <!-- Dinamis -->
+                                </tr>
+                            </thead>
+                            <tbody id="tableModalBody">
+                                <!-- Dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <div class="card card-full">
                 <h3>🗺️ Peta Stasiun Bumi Trial 5G Bandung</h3>
@@ -1279,20 +1307,25 @@
 
                 <div class="map-controls">
                     <select id="filterOperator" onchange="filterMapData()">
-                        <option value="all">🌐 Semua Operator (384)</option>
-                        <option value="Telkom Group">🔴 Telkom Group (141)</option>
-                        <option value="PSN">🟢 PSN (11)</option>
-                        <option value="BRI">🔵 BRI (232)</option>
+                        <option value="all">🌐 Semua Operator</option>
                     </select>
                     <input type="text" id="searchLocation"
-                        placeholder="Cari ID Stasiun, Alamat, atau Satelit... (contoh: TLKM1041, Bojongsoang, T3S)"
+                        placeholder="Cari ID, Alamat, atau Satelit..."
                         onkeydown="if(event.key==='Enter') searchLocation()">
                     <button class="btn-map" onclick="searchLocation()">
                         <i class="fas fa-search"></i> Cari
                     </button>
-                    <label class="cluster-toggle">
+                    <label class="cluster-toggle" title="Mengelompokkan titik berdekatan. Matikan jika performa melambat saat di-zoom.">
                         <input type="checkbox" id="toggleCluster" checked onchange="filterMapData()">
                         <i class="fas fa-object-group"></i> Grouping Cluster
+                    </label>
+                    <label class="cluster-toggle" title="Tampilkan/Sembunyikan Stasiun Bumi (Satelit)">
+                        <input type="checkbox" id="toggleFss" checked onchange="filterMapData()">
+                        <i class="fas fa-satellite-dish"></i> Stasiun Bumi
+                    </label>
+                    <label class="cluster-toggle" title="Tampilkan/Sembunyikan Stasiun BTS (5G/4G/2G)">
+                        <input type="checkbox" id="toggleBts" checked onchange="filterMapData()">
+                        <i class="fas fa-tower-cell"></i> BTS 5G/4G
                     </label>
                     <button class="btn-map btn-map-secondary" onclick="focusBandung()">
                         <i class="fas fa-crosshairs"></i> Fokus Bandung
@@ -1752,14 +1785,16 @@
             // Initialize marker cluster group, direct layer group, and circle layer group
             markersCluster = L.markerClusterGroup({
                 chunkedLoading: true,
-                spiderfyOnMaxZoom: true,
+                spiderfyOnMaxZoom: false,
+                disableClusteringAtZoom: 17,
                 showCoverageOnHover: false,
                 zoomToBoundsOnClick: true
             });
 
             btsCluster = L.markerClusterGroup({
                 chunkedLoading: true,
-                spiderfyOnMaxZoom: true,
+                spiderfyOnMaxZoom: false,
+                disableClusteringAtZoom: 17,
                 showCoverageOnHover: false,
                 zoomToBoundsOnClick: true
             });
@@ -1785,6 +1820,19 @@
             circleLayerGroup.addTo(map);
             markersCluster.addTo(map);
 
+            await fetchAndRenderData();
+
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                    focusIndonesia();
+                }
+            }, 200);
+
+            console.log('🗺️ Leaflet Map initialized focused on Indonesia');
+        }
+
+        async function fetchAndRenderData() {
             document.getElementById('mapStatus').textContent = '🔄 Memuat data stasiun bumi & BTS...';
 
             try {
@@ -1803,14 +1851,14 @@
                     allStationsData = [];
                 }
                 
-                let allBtsData = [];
                 if (dataBts.success && dataBts.data) {
                     allBtsData = dataBts.data;
+                } else {
+                    allBtsData = [];
                 }
 
-                updateStatCardsAndLegend(allStationsData);
-                renderStations(allStationsData);
-                renderBtsStations(allBtsData);
+                updateOperatorDropdown();
+                filterMapData();
 
                 // Focus directly on Indonesia (all archipelago)
                 focusIndonesia();
@@ -1820,15 +1868,6 @@
                 console.error('Gagal memuat stasiun:', err);
                 document.getElementById('mapStatus').textContent = '❌ Gagal memuat data stasiun.';
             }
-
-            setTimeout(() => {
-                if (map) {
-                    map.invalidateSize();
-                    focusIndonesia();
-                }
-            }, 200);
-
-            console.log('🗺️ Leaflet Map initialized focused on Indonesia');
         }
 
         const operatorColors = {
@@ -1941,6 +1980,123 @@
                 return div;
             };
             activeLegendControl.addTo(map);
+        }
+
+        let currentModalData = [];
+
+        function updateBtsStatCards(data) {
+            const counts = { '2G': 0, '4G': 0, '5G': 0 };
+            
+            data.forEach(s => {
+                const tech = String(s.technology).toUpperCase();
+                if (tech.includes('2G')) counts['2G']++;
+                else if (tech.includes('4G') || tech.includes('LTE')) counts['4G']++;
+                else if (tech.includes('5G') || tech.includes('NR')) counts['5G']++;
+            });
+
+            const grid = document.getElementById('btsStatsGrid');
+            if (!grid) return;
+
+            grid.innerHTML = `
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Semua BTS', allBtsData)">
+                    <div class="map-stat-icon stat-icon-total" style="background: #1e3a8a; color: white;">
+                        <i class="fas fa-tower-broadcast"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${data.length}</div>
+                        <div class="stat-label">Total BTS (Semua)</div>
+                    </div>
+                </div>
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('BTS 5G', allBtsData.filter(s => String(s.technology).toUpperCase().includes('5G') || String(s.technology).toUpperCase().includes('NR')))">
+                    <div class="map-stat-icon" style="background: #8b5cf6; color: white; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${counts['5G']}</div>
+                        <div class="stat-label">Total BTS 5G</div>
+                    </div>
+                </div>
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('BTS 4G', allBtsData.filter(s => String(s.technology).toUpperCase().includes('4G') || String(s.technology).toUpperCase().includes('LTE')))">
+                    <div class="map-stat-icon" style="background: #3b82f6; color: white; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-signal"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${counts['4G']}</div>
+                        <div class="stat-label">Total BTS 4G</div>
+                    </div>
+                </div>
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('BTS 2G', allBtsData.filter(s => String(s.technology).toUpperCase().includes('2G')))">
+                    <div class="map-stat-icon" style="background: #64748b; color: white; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-mobile-screen"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${counts['2G']}</div>
+                        <div class="stat-label">Total BTS 2G</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModalTable(title, dataArray) {
+            document.getElementById('tableModalTitle').innerHTML = `<i class="fas fa-table"></i> Data ${title} (${dataArray.length})`;
+            document.getElementById('tableSearch').value = '';
+            currentModalData = dataArray;
+            renderModalTable(dataArray);
+            document.getElementById('tableModalOverlay').style.display = 'block';
+        }
+
+        function renderModalTable(dataArray) {
+            const head = document.getElementById('tableModalHead');
+            const body = document.getElementById('tableModalBody');
+            
+            head.innerHTML = `
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">ID</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Operator</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Teknologi</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Frekuensi</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Tinggi Antena</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Lokasi (Kecamatan, Kota, Prov)</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Koordinat</th>
+            `;
+
+            if (dataArray.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:#64748b;">Tidak ada data.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            // Limit to 500 rows to prevent browser freeze on huge tables
+            const limit = Math.min(dataArray.length, 500);
+            for (let i = 0; i < limit; i++) {
+                const s = dataArray[i];
+                html += `
+                    <tr style="border-bottom:1px solid #e2e8f0;">
+                        <td style="padding:10px 12px;">${s.id}</td>
+                        <td style="padding:10px 12px; font-weight:600;">${s.operator || '-'}</td>
+                        <td style="padding:10px 12px;"><span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:12px; font-size:12px;">${s.technology || '-'}</span></td>
+                        <td style="padding:10px 12px;">${s.freq || '-'}</td>
+                        <td style="padding:10px 12px;">${s.antena_h || '-'}</td>
+                        <td style="padding:10px 12px;">${s.district}, ${s.city}, ${s.province}</td>
+                        <td style="padding:10px 12px;">${s.lat}, ${s.lng}</td>
+                    </tr>
+                `;
+            }
+            if (dataArray.length > 500) {
+                html += `<tr><td colspan="7" style="padding:15px; text-align:center; color:#ef4444; font-weight:bold;">Menampilkan 500 baris pertama dari total ${dataArray.length} data. Gunakan pencarian untuk data spesifik.</td></tr>`;
+            }
+            body.innerHTML = html;
+        }
+
+        function filterModalTable() {
+            const query = document.getElementById('tableSearch').value.toLowerCase();
+            const filtered = currentModalData.filter(s => {
+                return (s.id && String(s.id).toLowerCase().includes(query)) ||
+                       (s.operator && String(s.operator).toLowerCase().includes(query)) ||
+                       (s.technology && String(s.technology).toLowerCase().includes(query)) ||
+                       (s.district && String(s.district).toLowerCase().includes(query)) ||
+                       (s.city && String(s.city).toLowerCase().includes(query));
+            });
+            renderModalTable(filtered);
         }
 
         function renderBtsStations(stations) {
@@ -2147,32 +2303,89 @@
             }
         }
 
+        function updateOperatorDropdown() {
+            const select = document.getElementById('filterOperator');
+            if (!select) return;
+
+            const operators = new Set();
+            allStationsData.forEach(s => operators.add(s.operatorGroup || getOperatorGroup(s.operator)));
+            allBtsData.forEach(s => operators.add(s.operator || 'Lainnya'));
+
+            const sortedOps = Array.from(operators).sort();
+            
+            let html = '<option value="all">🌐 Semua Operator</option>';
+            sortedOps.forEach(op => {
+                if (op) {
+                    html += `<option value="${op}">${op}</option>`;
+                }
+            });
+            
+            const currentVal = select.value;
+            select.innerHTML = html;
+            if (sortedOps.includes(currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
         function filterMapData() {
             const operator = document.getElementById('filterOperator').value;
             const query = document.getElementById('searchLocation').value.trim().toLowerCase();
+            
+            const showFss = document.getElementById('toggleFss') ? document.getElementById('toggleFss').checked : true;
+            const showBts = document.getElementById('toggleBts') ? document.getElementById('toggleBts').checked : true;
 
-            let filtered = allStationsData.filter(s => {
-                let validCoord = typeof s.lat === 'number' && typeof s.lng === 'number' &&
-                    !isNaN(s.lat) && !isNaN(s.lng) &&
-                    s.lat >= -90 && s.lat <= 90 && s.lng >= -180 && s.lng <= 180;
-                if (!validCoord) return false;
+            // Filter Stasiun Bumi
+            let filteredFss = [];
+            if (showFss) {
+                filteredFss = allStationsData.filter(s => {
+                    let validCoord = typeof s.lat === 'number' && typeof s.lng === 'number' && !isNaN(s.lat) && !isNaN(s.lng);
+                    if (!validCoord) return false;
 
-                let matchOperator = (operator === 'all' || s.operator === operator);
-                let matchQuery = true;
+                    s.operatorGroup = getOperatorGroup(s.operator);
+                    let matchOperator = (operator === 'all' || s.operatorGroup === operator);
+                    let matchQuery = true;
 
-                if (query) {
-                    let idMatch = (s.id && String(s.id).toLowerCase().includes(query));
-                    let alamatMatch = (s.alamat && String(s.alamat).toLowerCase().includes(query));
-                    let satelitMatch = (s.satelit && String(s.satelit).toLowerCase().includes(query));
-                    let operatorMatch = (s.operator && String(s.operator).toLowerCase().includes(query));
-                    matchQuery = idMatch || alamatMatch || satelitMatch || operatorMatch;
-                }
+                    if (query) {
+                        let idMatch = (s.id && String(s.id).toLowerCase().includes(query));
+                        let alamatMatch = (s.alamat && String(s.alamat).toLowerCase().includes(query));
+                        let satelitMatch = (s.satelit && String(s.satelit).toLowerCase().includes(query));
+                        let operatorMatch = (s.operatorGroup && String(s.operatorGroup).toLowerCase().includes(query));
+                        matchQuery = idMatch || alamatMatch || satelitMatch || operatorMatch;
+                    }
+                    return matchOperator && matchQuery;
+                });
+            }
 
-                return matchOperator && matchQuery;
-            });
+            // Filter BTS
+            let filteredBts = [];
+            if (showBts) {
+                filteredBts = allBtsData.filter(s => {
+                    let validCoord = typeof s.lat === 'number' && typeof s.lng === 'number' && !isNaN(s.lat) && !isNaN(s.lng);
+                    if (!validCoord) return false;
 
-            renderStations(filtered);
-            document.getElementById('mapStatus').textContent = `🔍 Menampilkan ${filtered.length} dari ${allStationsData.length} stasiun bumi.`;
+                    let opName = s.operator || 'Lainnya';
+                    let matchOperator = (operator === 'all' || opName === operator);
+                    let matchQuery = true;
+
+                    if (query) {
+                        let idMatch = (s.id && String(s.id).toLowerCase().includes(query));
+                        let techMatch = (s.technology && String(s.technology).toLowerCase().includes(query));
+                        let locMatch = (s.city && String(s.city).toLowerCase().includes(query));
+                        let operatorMatch = (opName.toLowerCase().includes(query));
+                        matchQuery = idMatch || techMatch || locMatch || operatorMatch;
+                    }
+                    return matchOperator && matchQuery;
+                });
+            }
+
+            renderStations(filteredFss);
+            renderBtsStations(filteredBts);
+            
+            // Only update stats for FSS for now (we'll add a new stat row for BTS next)
+            updateStatCardsAndLegend(filteredFss);
+            updateBtsStatCards(filteredBts);
+
+            document.getElementById('mapStatus').textContent = `🔍 Menampilkan ${filteredFss.length} Stasiun Bumi dan ${filteredBts.length} BTS.`;
         }
 
         function searchLocation() {
@@ -2357,7 +2570,7 @@
                     icon: 'success',
                     confirmButtonText: 'OK'
                 }).then(() => {
-                    location.reload();
+                    fetchAndRenderData();
                 });
             } catch (error) {
                 console.error(error);
