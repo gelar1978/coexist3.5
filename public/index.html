@@ -1351,6 +1351,9 @@
                     <button class="btn-map btn-map-secondary" onclick="resetMap()">
                         <i class="fas fa-rotate-left"></i> Reset Filter
                     </button>
+                    <a href="/Template_Upload_Coexist35.xlsx" download class="btn-map" style="background-color: #f59e0b; color: white; text-decoration: none;">
+                        <i class="fas fa-download"></i> Unduh Template
+                    </a>
                     <button class="btn-map" onclick="document.getElementById('uploadFssFile').click()" style="background-color: #10b981; color: white;">
                         <i class="fas fa-satellite-dish"></i> Upload Stasiun Bumi
                     </button>
@@ -1911,6 +1914,8 @@
             'Primacom': '#14b8a6',
             'Iforte': '#06b6d4',
             'Skyreach': '#84cc16',
+            'Satkomindo': '#f97316',
+            'DTP': '#6366f1',
             'Lainnya': '#64748b'
         };
 
@@ -1922,21 +1927,25 @@
             'Tangara Mitrakom': 'fa-wifi',
             'Inti Prima': 'fa-server',
             'Primacom': 'fa-satellite-dish',
+            'Satkomindo': 'fa-tower-broadcast',
+            'DTP': 'fa-network-wired',
             'Lainnya': 'fa-tower-broadcast'
         };
 
         function getOperatorGroup(op) {
             if (!op) return 'Lainnya';
             const lower = op.toLowerCase();
-            if (lower.includes('telkom')) return 'Telkom Group';
+            if (lower.includes('telkom') || lower.includes('telekomunikasi')) return 'Telkom Group';
             if (lower.includes('bri') || lower.includes('rakyat indonesia')) return 'BRI';
-            if (lower.includes('psn') || lower.includes('pasifik satelit')) return 'PSN';
+            if (lower.includes('psn') || lower.includes('pasifik satelit') || lower.includes('satelit nusantara')) return 'PSN';
             if (lower.includes('lintasarta')) return 'Lintasarta';
             if (lower.includes('tangara')) return 'Tangara Mitrakom';
             if (lower.includes('inti prima')) return 'Inti Prima';
             if (lower.includes('primacom')) return 'Primacom';
             if (lower.includes('iforte')) return 'Iforte';
             if (lower.includes('skyreach')) return 'Skyreach';
+            if (lower.includes('satkomindo')) return 'Satkomindo';
+            if (lower.includes('dwi tunggal') || lower.includes('dtp')) return 'DTP';
             return 'Lainnya';
         }
 
