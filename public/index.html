@@ -149,6 +149,11 @@
             flex: 1;
             padding: 30px 40px;
             min-height: 100vh;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
         }
 
         /* Top Bar */
@@ -214,13 +219,23 @@
         }
 
         .menu-toggle {
-            display: none;
+            display: inline-block;
             background: none;
             border: none;
             font-size: 24px;
             color: #2d3748;
             cursor: pointer;
             padding: 8px;
+            margin-right: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            color: #3b82f6;
+        }
+
+        .sidebar.desktop-hidden {
+            transform: translateX(-100%);
         }
 
         /* ==================== CONTENT SECTIONS ==================== */
@@ -484,7 +499,7 @@
 
         /* ==================== MAP STYLES ==================== */
         #map {
-            height: 500px;
+            height: 75vh;
             width: 100%;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
@@ -1415,8 +1430,24 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('show');
+            const mainContent = document.querySelector('.main-content');
+            
+            if (window.innerWidth > 768) {
+                // Desktop mode toggle
+                sidebar.classList.toggle('desktop-hidden');
+                mainContent.classList.toggle('expanded');
+                
+                // Need to invalidate map size after transition to prevent map rendering issues
+                setTimeout(() => {
+                    if (typeof map !== 'undefined' && map != null) {
+                        map.invalidateSize();
+                    }
+                }, 300);
+            } else {
+                // Mobile mode toggle
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('show');
+            }
         }
 
         window.addEventListener('resize', function () {
