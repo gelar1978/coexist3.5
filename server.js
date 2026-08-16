@@ -134,6 +134,7 @@ app.get('/dashboard', (req, res) => {
     if (!req.session || !req.session.userId) {
         return res.redirect('/login.html');
     }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
