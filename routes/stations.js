@@ -13,9 +13,21 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get('/', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM stations ORDER BY id DESC');
+        const mappedData = rows.map(r => ({
+            id: r.name,
+            lat: parseFloat(r.lat),
+            lng: parseFloat(r.lng),
+            operator: r.operating_agency || 'Lainnya',
+            alamat: r.address || '-',
+            provinsi: r.province || '-',
+            satelit: r.usage_type || '-',
+            frekuensi: r.frequency || '-',
+            bandwidth: r.bandwidth || '-'
+        }));
+        
         res.json({
             success: true,
-            data: rows
+            data: mappedData
         });
     } catch (error) {
         console.error('Error fetching stations:', error);
