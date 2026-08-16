@@ -2090,7 +2090,7 @@
             activeLegendControl.onAdd = function () {
                 const div = L.DomUtil.create('div', 'map-legend-box');
                 let legendHtml = `
-                    <div style="background: white; padding: 10px 14px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.18); font-size: 12px; font-weight: 600; color: #1e293b; border: 1px solid #e2e8f0; max-height: 250px; overflow-y: auto;">
+                    <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); padding: 10px 14px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.18); font-size: 12px; font-weight: 600; color: #1e293b; border: 1px solid rgba(226, 232, 240, 0.8); max-height: 450px; overflow-y: auto;">
                         <div style="margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #0f172a;">📡 Legenda Stasiun Bumi</div>
                 `;
                 
