@@ -1355,27 +1355,30 @@
                         <input type="checkbox" id="toggleBts" checked onchange="filterMapData()">
                         <i class="fas fa-tower-cell"></i> BTS 5G/4G
                     </label>
-                    <button class="btn-map btn-map-secondary" onclick="focusBandung()">
-                        <i class="fas fa-crosshairs"></i> Fokus Bandung
-                    </button>
-                    <button class="btn-map btn-map-secondary" onclick="getCurrentLocation()">
-                        <i class="fas fa-location-dot"></i> Lokasi Saya
-                    </button>
-                    <button class="btn-map btn-map-secondary" onclick="resetMap()">
-                        <i class="fas fa-rotate-left"></i> Reset Filter
-                    </button>
-                    <a href="/Template_Upload_Coexist35.xlsx" download class="btn-map" style="background-color: #f59e0b; color: white; text-decoration: none;">
-                        <i class="fas fa-download"></i> Unduh Template
-                    </a>
-                    <button class="btn-map" onclick="document.getElementById('uploadFssFile').click()" style="background-color: #10b981; color: white;">
-                        <i class="fas fa-satellite-dish"></i> Upload Stasiun Bumi
-                    </button>
-                    <input type="file" id="uploadFssFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this, 'fss')">
-
-                    <button class="btn-map" onclick="document.getElementById('uploadBtsFile').click()" style="background-color: #3b82f6; color: white;">
-                        <i class="fas fa-tower-cell"></i> Upload BTS (5G/4G)
-                    </button>
-                    <input type="file" id="uploadBtsFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this, 'bts')">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                        <button class="btn-map btn-map-secondary" onclick="focusIndonesia()"><i class="fas fa-crosshairs"></i> Fokus Indonesia</button>
+                        <button class="btn-map btn-map-secondary" onclick="focusJabodetabek()"><i class="fas fa-crosshairs"></i> Fokus Jabodetabek</button>
+                        <button class="btn-map btn-map-secondary" onclick="focusJakarta()"><i class="fas fa-crosshairs"></i> Fokus Jakarta</button>
+                        <button class="btn-map btn-map-secondary" onclick="focusBandung()"><i class="fas fa-crosshairs"></i> Fokus Bandung</button>
+                        <button class="btn-map btn-map-secondary" onclick="focusSemarang()"><i class="fas fa-crosshairs"></i> Fokus Semarang</button>
+                        <button class="btn-map btn-map-secondary" onclick="focusYogyakarta()"><i class="fas fa-crosshairs"></i> Fokus Yogyakarta</button>
+                        <button class="btn-map btn-map-secondary" onclick="focusSurabaya()"><i class="fas fa-crosshairs"></i> Fokus Surabaya</button>
+                        <button class="btn-map btn-map-secondary" onclick="getCurrentLocation()"><i class="fas fa-location-dot"></i> Lokasi Saya</button>
+                        <button class="btn-map btn-map-secondary" onclick="resetMap()"><i class="fas fa-rotate-left"></i> Reset Filter</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="/Template_Upload_Coexist35.xlsx" download class="btn-map" style="background-color: #f59e0b; color: white; text-decoration: none;">
+                            <i class="fas fa-download"></i> Unduh Template
+                        </a>
+                        <button class="btn-map" onclick="document.getElementById('uploadFssFile').click()" style="background-color: #10b981; color: white;">
+                            <i class="fas fa-satellite-dish"></i> Upload Stasiun Bumi
+                        </button>
+                        <input type="file" id="uploadFssFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this, 'fss')">
+                        <button class="btn-map" onclick="document.getElementById('uploadBtsFile').click()" style="background-color: #3b82f6; color: white;">
+                            <i class="fas fa-tower-cell"></i> Upload BTS (5G/4G/2G)
+                        </button>
+                        <input type="file" id="uploadBtsFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this, 'bts')">
+                    </div>
                 </div>
 
                 <div id="map"></div>
@@ -2353,6 +2356,13 @@
 
                 btsCluster.addLayer(marker);
             });
+            
+            const showBts = document.getElementById('toggleBts') ? document.getElementById('toggleBts').checked : true;
+            if (showBts) {
+                if (!map.hasLayer(btsCluster)) map.addLayer(btsCluster);
+            } else {
+                if (map.hasLayer(btsCluster)) map.removeLayer(btsCluster);
+            }
         }
 
         function renderStations(stations) {
@@ -2678,11 +2688,46 @@
         });
 
         // ==================== FOCUS BANDUNG ====================
+        function focusJabodetabek() {
+            if (map) {
+                map.setView([-6.2088, 106.8456], 10);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Jabodetabek';
+            }
+        }
+
+        function focusJakarta() {
+            if (map) {
+                map.setView([-6.2088, 106.8456], 12);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Jakarta';
+            }
+        }
+
         function focusBandung() {
             if (map) {
                 // Koordinat pusat Bandung
                 map.setView([-6.9175, 107.6191], 12);
                 document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Bandung';
+            }
+        }
+        
+        function focusSemarang() {
+            if (map) {
+                map.setView([-6.9932, 110.4203], 12);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Semarang';
+            }
+        }
+        
+        function focusYogyakarta() {
+            if (map) {
+                map.setView([-7.7956, 110.3695], 12);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Yogyakarta';
+            }
+        }
+        
+        function focusSurabaya() {
+            if (map) {
+                map.setView([-7.2504, 112.7688], 12);
+                document.getElementById('mapStatus').textContent = '🎯 Peta difokuskan ke area Surabaya';
             }
         }
 
