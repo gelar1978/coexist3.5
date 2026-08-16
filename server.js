@@ -48,7 +48,7 @@ app.use(cors({
 // Rate limiting (mencegah brute force)
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 menit
-    max: 100, // maksimal 100 request per IP
+    max: 10000, // dinaikkan dari 100 menjadi 10000 request per IP untuk mendukung chunking upload Excel
     message: {
         success: false,
         message: 'Terlalu banyak permintaan, coba lagi nanti'
