@@ -2084,13 +2084,17 @@
 
             if (activeLegendControl) {
                 map.removeControl(activeLegendControl);
+                activeLegendControl = null;
             }
+
+            const showFss = document.getElementById('toggleFss') ? document.getElementById('toggleFss').checked : true;
+            if (!showFss) return; // Sembunyikan legenda FSS jika toggleFss dimatikan
 
             activeLegendControl = L.control({position: 'bottomleft'});
             activeLegendControl.onAdd = function () {
                 const div = L.DomUtil.create('div', 'map-legend-box');
                 let legendHtml = `
-                    <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); padding: 10px 14px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.18); font-size: 12px; font-weight: 600; color: #1e293b; border: 1px solid rgba(226, 232, 240, 0.8); max-height: 450px; overflow-y: auto;">
+                    <div style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); padding: 10px 14px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.18); font-size: 12px; font-weight: 600; color: #1e293b; border: 1px solid rgba(226, 232, 240, 0.8); max-height: 450px; overflow-y: auto;">
                         <div style="margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #0f172a;">📡 Legenda Stasiun Bumi</div>
                 `;
                 
@@ -2110,6 +2114,8 @@
             };
             activeLegendControl.addTo(map);
         }
+
+        let activeBtsLegendControl = null;
 
         let currentModalData = [];
 
@@ -2164,6 +2170,45 @@
                     </div>
                 </div>
             `;
+            
+            if (activeBtsLegendControl) {
+                map.removeControl(activeBtsLegendControl);
+                activeBtsLegendControl = null;
+            }
+
+            const showBts = document.getElementById('toggleBts') ? document.getElementById('toggleBts').checked : true;
+            if (!showBts) return; // Sembunyikan legenda BTS jika toggleBts dimatikan
+
+            activeBtsLegendControl = L.control({position: 'bottomleft'});
+            activeBtsLegendControl.onAdd = function () {
+                const div = L.DomUtil.create('div', 'map-legend-box');
+                let legendHtml = `
+                    <div style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); padding: 10px 14px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.18); font-size: 12px; font-weight: 600; color: #1e293b; border: 1px solid rgba(226, 232, 240, 0.8); max-height: 450px; overflow-y: auto; margin-top: 10px;">
+                        <div style="margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #0f172a;">🗼 Legenda BTS Seluler</div>
+                `;
+                
+                const btsTechs = [
+                    { name: '5G / NR', count: counts['5G'], color: '#10b981' }, // green
+                    { name: '4G / LTE', count: counts['4G'], color: '#f59e0b' }, // amber
+                    { name: '2G / GSM', count: counts['2G'], color: '#ef4444' }  // red
+                ];
+
+                btsTechs.forEach(tech => {
+                    if (tech.count > 0) {
+                        legendHtml += `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <span style="width: 12px; height: 12px; border-radius: 50%; background: ${tech.color}; display: inline-block;"></span>
+                                <span>${tech.name} (${tech.count})</span>
+                            </div>
+                        `;
+                    }
+                });
+
+                legendHtml += `</div>`;
+                div.innerHTML = legendHtml;
+                return div;
+            };
+            activeBtsLegendControl.addTo(map);
         }
 
         function openModalTable(title, dataArray) {
@@ -2260,8 +2305,11 @@
                     return;
                 }
 
-                // Gunakan warna biru/cyan untuk BTS
-                const color = '#3b82f6';
+                const tech = String(s.technology).toUpperCase();
+                let color = '#3b82f6'; // fallback blue
+                if (tech.includes('5G') || tech.includes('NR')) color = '#10b981'; // green
+                else if (tech.includes('4G') || tech.includes('LTE')) color = '#f59e0b'; // amber
+                else if (tech.includes('2G')) color = '#ef4444'; // red
 
                 const popupContent = `
                     <div class="station-popup">
