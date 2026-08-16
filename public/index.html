@@ -1324,8 +1324,11 @@
                 </div>
 
                 <div class="map-controls">
-                    <select id="filterOperator" onchange="filterMapData()">
-                        <option value="all">🌐 Semua Operator</option>
+                    <select id="filterFssOperator" onchange="filterMapData()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; font-size: 14px; background: white; font-weight: 500; cursor: pointer; color: #1e293b; margin-right: 5px;">
+                        <option value="all">🌐 Semua Op. Satelit</option>
+                    </select>
+                    <select id="filterBtsOperator" onchange="filterMapData()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; font-size: 14px; background: white; font-weight: 500; cursor: pointer; color: #1e293b; margin-right: 5px;">
+                        <option value="all">🗼 Semua Op. BTS</option>
                     </select>
                     <select id="filterFreqBand" onchange="filterMapData()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; font-size: 14px; background: white; font-weight: 500; cursor: pointer; color: #1e293b;">
                         <option value="all">📡 Semua Band</option>
@@ -2452,7 +2455,7 @@
 
             if (!showCircles || radiusVal === 0) return;
 
-            const operatorFilter = document.getElementById('filterOperator') ? document.getElementById('filterOperator').value : 'all';
+            const operatorFilter = document.getElementById('filterFssOperator') ? document.getElementById('filterFssOperator').value : 'all';
             const freqBand = document.getElementById('filterFreqBand') ? document.getElementById('filterFreqBand').value : 'all';
             const query = document.getElementById('searchLocation') ? document.getElementById('searchLocation').value.trim().toLowerCase() : '';
 
@@ -2519,31 +2522,35 @@
         }
 
         function updateOperatorDropdown() {
-            const select = document.getElementById('filterOperator');
-            if (!select) return;
-
-            const operators = new Set();
-            allStationsData.forEach(s => operators.add(s.operatorGroup || getOperatorGroup(s.operator)));
-            allBtsData.forEach(s => operators.add(s.operator || 'Lainnya'));
-
-            const sortedOps = Array.from(operators).sort();
+            const selectFss = document.getElementById('filterFssOperator');
+            const selectBts = document.getElementById('filterBtsOperator');
             
-            let html = '<option value="all">🌐 Semua Operator</option>';
-            sortedOps.forEach(op => {
-                if (op) {
-                    html += `<option value="${op}">${op}</option>`;
-                }
-            });
-            
-            const currentVal = select.value;
-            select.innerHTML = html;
-            if (sortedOps.includes(currentVal)) {
-                select.value = currentVal;
+            if (selectFss) {
+                const opsFss = new Set();
+                allStationsData.forEach(s => opsFss.add(s.operatorGroup || getOperatorGroup(s.operator)));
+                const sortedFss = Array.from(opsFss).sort();
+                let html = '<option value="all">🌐 Semua Op. Satelit</option>';
+                sortedFss.forEach(op => { if (op) html += `<option value="${op}">${op}</option>`; });
+                const currentVal = selectFss.value;
+                selectFss.innerHTML = html;
+                if (sortedFss.includes(currentVal)) selectFss.value = currentVal;
+            }
+
+            if (selectBts) {
+                const opsBts = new Set();
+                allBtsData.forEach(s => opsBts.add(s.operator || 'Lainnya'));
+                const sortedBts = Array.from(opsBts).sort();
+                let html = '<option value="all">🗼 Semua Op. BTS</option>';
+                sortedBts.forEach(op => { if (op) html += `<option value="${op}">${op}</option>`; });
+                const currentVal = selectBts.value;
+                selectBts.innerHTML = html;
+                if (sortedBts.includes(currentVal)) selectBts.value = currentVal;
             }
         }
 
         function filterMapData() {
-            const operator = document.getElementById('filterOperator').value;
+            const fssOperator = document.getElementById('filterFssOperator') ? document.getElementById('filterFssOperator').value : 'all';
+            const btsOperator = document.getElementById('filterBtsOperator') ? document.getElementById('filterBtsOperator').value : 'all';
             const freqBand = document.getElementById('filterFreqBand') ? document.getElementById('filterFreqBand').value : 'all';
             const query = document.getElementById('searchLocation').value.trim().toLowerCase();
             
@@ -2558,7 +2565,7 @@
                     if (!validCoord) return false;
 
                     s.operatorGroup = getOperatorGroup(s.operator);
-                    let matchOperator = (operator === 'all' || s.operatorGroup === operator);
+                    let matchOperator = (fssOperator === 'all' || s.operatorGroup === fssOperator);
                     
                     s.freqClass = getFreqClassification(s.frekuensi);
                     let matchFreqBand = true;
@@ -2591,7 +2598,7 @@
                     if (!validCoord) return false;
 
                     let opName = s.operator || 'Lainnya';
-                    let matchOperator = (operator === 'all' || opName === operator);
+                    let matchOperator = (btsOperator === 'all' || opName === btsOperator);
                     let matchQuery = true;
 
                     if (query) {
@@ -2649,7 +2656,8 @@
         }
 
         function resetMap() {
-            document.getElementById('filterOperator').value = 'all';
+            if (document.getElementById('filterFssOperator')) document.getElementById('filterFssOperator').value = 'all';
+            if (document.getElementById('filterBtsOperator')) document.getElementById('filterBtsOperator').value = 'all';
             document.getElementById('searchLocation').value = '';
             document.getElementById('toggleCluster').checked = true;
             filterMapData();
