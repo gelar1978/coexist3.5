@@ -152,4 +152,143 @@ router.post('/upload', authenticate, async (req, res) => {
     }
 });
 
+// ==================== GET ALL BTS STATIONS ====================
+router.get('/bts', async (req, res) => {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.write('{"success":true,"data":[');
+        
+        let isFirst = true;
+        
+        const query = connection.connection.query('SELECT longitude, latitude, azimuth, antena_h, freq, technology, operator, district, city, province FROM bts_stations');
+        
+        query.on('error', (err) => {
+            console.error('Stream error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ success: false, message: 'Gagal mengambil data BTS' });
+            } else {
+                res.end(']}');
+            }
+        });
+
+        query.on('result', (row) => {
+            const mappedData = {
+                id: `BTS-${row.freq}-${row.technology}`,
+                lat: parseFloat(row.latitude),
+                lng: parseFloat(row.longitude),
+                azimuth: row.azimuth || '-',
+                antena_h: row.antena_h || '-',
+                freq: row.freq || '-',
+                technology: row.technology || '-',
+                operator: row.operator || 'Lainnya',
+                district: row.district || '-',
+                city: row.city || '-',
+                province: row.province || '-'
+            };
+            
+            if (!isFirst) res.write(',');
+            res.write(JSON.stringify(mappedData));
+            isFirst = false;
+        });
+
+        query.on('end', () => {
+            res.write(']}');
+            res.end();
+            connection.release();
+        });
+
+    } catch (error) {
+        console.error('Error fetching BTS stations:', error);
+        if (connection) connection.release();
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: 'Gagal mengambil data BTS' });
+        }
+    }
+});
+
+// ==================== UPLOAD EXCEL BTS ====================
+router.post('/upload-bts', authenticate, async (req, res) => {
+    try {
+        const rawData = req.body.data;
+        
+        if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+            return res.status(400).json({ success: false, message: 'Data Excel kosong atau tidak valid' });
+        }
+
+        let insertedCount = 0;
+        let skippedCount = 0;
+
+        for (const row of rawData) {
+            const lowerRow = {};
+            for (let key in row) {
+                lowerRow[key.toLowerCase().trim()] = row[key];
+            }
+
+            const lat = lowerRow['latitude'] || lowerRow['lat'] || lowerRow['lat dec'];
+            const lng = lowerRow['longitude'] || lowerRow['long'] || lowerRow['long dec'] || lowerRow['lon'];
+            
+            if (lat == null || lng == null) {
+                skippedCount++;
+                continue;
+            }
+
+            const azimuth = lowerRow['azimuth'] || null;
+            const antena_h = lowerRow['antena_h'] || null;
+            const freq = lowerRow['freq'] || lowerRow['frequency'] || null;
+            const technology = lowerRow['k'] || lowerRow['technology'] || null;
+            
+            // Auto detect operator from technology (e.g. IOH_2G -> Indosat Ooredoo)
+            let operator = lowerRow['operator'] || null;
+            if (!operator && technology) {
+                const techStr = String(technology).toUpperCase();
+                if (techStr.includes('IOH')) operator = 'Indosat Ooredoo';
+                else if (techStr.includes('TSEL') || techStr.includes('TELKOMSEL')) operator = 'Telkomsel';
+                else if (techStr.includes('XL')) operator = 'XL Axiata';
+                else if (techStr.includes('SMARTFREN')) operator = 'Smartfren';
+                else if (techStr.includes('HCPT') || techStr.includes('TRI')) operator = 'Tri';
+            }
+
+            const district = lowerRow['wadmkc'] || lowerRow['kecamatan'] || null;
+            const city = lowerRow['wadmkk'] || lowerRow['kabupaten'] || null;
+            const province = lowerRow['wadmpr'] || lowerRow['provinsi'] || null;
+
+            try {
+                const [result] = await pool.query(`
+                    INSERT IGNORE INTO bts_stations 
+                    (longitude, latitude, azimuth, antena_h, freq, technology, operator, district, city, province) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [parseFloat(lng), parseFloat(lat), azimuth, antena_h, freq, technology, operator, district, city, province]);
+                
+                if (result.affectedRows > 0) {
+                    insertedCount++;
+                } else {
+                    skippedCount++;
+                }
+            } catch (err) {
+                console.error('Error insert BTS row:', err.message);
+                skippedCount++;
+            }
+        }
+
+        try {
+            await pool.query(
+                'INSERT INTO user_logs (user_id, action, ip_address, user_agent) VALUES (?, ?, ?, ?)',
+                [req.user.id, 'upload_bts', req.ip || req.connection.remoteAddress, req.headers['user-agent']]
+            );
+        } catch(e) {}
+
+        res.json({
+            success: true,
+            message: `Berhasil memproses Excel BTS. Data baru dimasukkan: ${insertedCount}. Data dilewati/duplikat: ${skippedCount}.`
+        });
+
+    } catch (error) {
+        console.error('Upload excel BTS error:', error);
+        res.status(500).json({ success: false, message: 'Terjadi kesalahan server saat memproses file Excel BTS' });
+    }
+});
+
 module.exports = router;

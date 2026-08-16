@@ -1303,10 +1303,15 @@
                     <button class="btn-map btn-map-secondary" onclick="resetMap()">
                         <i class="fas fa-rotate-left"></i> Reset Filter
                     </button>
-                    <button class="btn-map" onclick="document.getElementById('uploadExcelFile').click()" style="background-color: #10b981; color: white;">
-                        <i class="fas fa-file-excel"></i> Upload Data
+                    <button class="btn-map" onclick="document.getElementById('uploadFssFile').click()" style="background-color: #10b981; color: white;">
+                        <i class="fas fa-satellite-dish"></i> Upload Stasiun Bumi
                     </button>
-                    <input type="file" id="uploadExcelFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this)">
+                    <input type="file" id="uploadFssFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this, 'fss')">
+
+                    <button class="btn-map" onclick="document.getElementById('uploadBtsFile').click()" style="background-color: #3b82f6; color: white;">
+                        <i class="fas fa-tower-cell"></i> Upload BTS (5G/4G)
+                    </button>
+                    <input type="file" id="uploadBtsFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this, 'bts')">
                 </div>
 
                 <div id="map"></div>
@@ -1752,6 +1757,13 @@
                 zoomToBoundsOnClick: true
             });
 
+            btsCluster = L.markerClusterGroup({
+                chunkedLoading: true,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true
+            });
+
             directLayerGroup = L.layerGroup();
             circleLayerGroup = L.layerGroup();
 
@@ -1763,38 +1775,50 @@
             };
 
             const overlays = {
+                "📡 Stasiun Bumi (Satelit)": markersCluster,
+                "🗼 Stasiun BTS (5G/4G/2G)": btsCluster,
                 "⭕ Lingkaran Coverage (Radius)": circleLayerGroup
             };
 
             L.control.layers(baseMaps, overlays, {position: 'topright'}).addTo(map);
 
             circleLayerGroup.addTo(map);
+            markersCluster.addTo(map);
 
-            // Add legend
-            // Legend control dilepas dari initMap, dipindah ke updateStatCardsAndLegend
-
-            document.getElementById('mapStatus').textContent = '🔄 Memuat data stasiun bumi...';
+            document.getElementById('mapStatus').textContent = '🔄 Memuat data stasiun bumi & BTS...';
 
             try {
                 // Fetch from database API
-                const res = await fetch('/api/stations', { credentials: 'omit' });
+                const [res, resBts] = await Promise.all([
+                    fetch('/api/stations', { credentials: 'omit' }),
+                    fetch('/api/stations/bts', { credentials: 'omit' })
+                ]);
+                
                 const data = await res.json();
+                const dataBts = await resBts.json();
+
                 if (data.success && data.data) {
                     allStationsData = data.data;
                 } else {
                     allStationsData = [];
                 }
+                
+                let allBtsData = [];
+                if (dataBts.success && dataBts.data) {
+                    allBtsData = dataBts.data;
+                }
 
                 updateStatCardsAndLegend(allStationsData);
                 renderStations(allStationsData);
+                renderBtsStations(allBtsData);
 
                 // Focus directly on Indonesia (all archipelago)
                 focusIndonesia();
 
-                document.getElementById('mapStatus').textContent = `✅ Berhasil memuat ${allStationsData.length} stasiun bumi pada peta Indonesia.`;
+                document.getElementById('mapStatus').textContent = `✅ Berhasil memuat ${allStationsData.length} stasiun bumi dan ${allBtsData.length} BTS pada peta Indonesia.`;
             } catch (err) {
-                console.error('Gagal memuat stasiun bumi:', err);
-                document.getElementById('mapStatus').textContent = '❌ Gagal memuat data stasiun bumi.';
+                console.error('Gagal memuat stasiun:', err);
+                document.getElementById('mapStatus').textContent = '❌ Gagal memuat data stasiun.';
             }
 
             setTimeout(() => {
@@ -1917,6 +1941,62 @@
                 return div;
             };
             activeLegendControl.addTo(map);
+        }
+
+        function renderBtsStations(stations) {
+            if (!map || !btsCluster) return;
+
+            btsCluster.clearLayers();
+
+            stations.forEach(s => {
+                if (typeof s.lat !== 'number' || typeof s.lng !== 'number' ||
+                    isNaN(s.lat) || isNaN(s.lng) ||
+                    s.lat < -90 || s.lat > 90 || s.lng < -180 || s.lng > 180) {
+                    return;
+                }
+
+                // Gunakan warna biru/cyan untuk BTS
+                const color = '#3b82f6';
+
+                const popupContent = `
+                    <div class="station-popup">
+                        <div class="station-popup-header">
+                            <span class="station-popup-title">🗼 ${s.id}</span>
+                            <span class="station-badge" style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">BTS</span>
+                        </div>
+                        <div class="station-popup-body">
+                            <table class="station-table">
+                                <tr><td><i class="fas fa-microchip"></i> Teknologi</td><td>${s.technology}</td></tr>
+                                <tr><td><i class="fas fa-building"></i> Operator</td><td>${s.operator}</td></tr>
+                                <tr><td><i class="fas fa-wave-square"></i> Frekuensi</td><td>${s.freq}</td></tr>
+                                <tr><td><i class="fas fa-arrows-up-down"></i> Tinggi Antena</td><td>${s.antena_h}</td></tr>
+                                <tr><td><i class="fas fa-compass"></i> Azimuth</td><td>${s.azimuth}</td></tr>
+                                <tr><td><i class="fas fa-map-location-dot"></i> Lokasi</td><td>${s.district}, ${s.city}, ${s.province}</td></tr>
+                                <tr><td><i class="fas fa-location-crosshairs"></i> Koordinat</td><td>${s.lat}, ${s.lng}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                const iconHtml = `
+                    <div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid white;">
+                        <i class="fas fa-tower-cell" style="font-size: 12px;"></i>
+                    </div>
+                `;
+
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: 'custom-div-icon',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
+                    popupAnchor: [0, -12]
+                });
+
+                const marker = L.marker([s.lat, s.lng], { icon: customIcon });
+                marker.bindPopup(popupContent, { maxWidth: 350 });
+
+                btsCluster.addLayer(marker);
+            });
         }
 
         function renderStations(stations) {
@@ -2162,7 +2242,7 @@
         console.log('🗺️ Tab Peta siap digunakan');
 
         // ==================== UPLOAD EXCEL (Client-Side Parsing) ====================
-        async function uploadStationsExcel(input) {
+        async function uploadStationsExcel(input, targetType) {
             const file = input.files[0];
             if (!file) return;
 
@@ -2172,21 +2252,26 @@
             uploadBtn.disabled = true;
 
             try {
-                // Baca Excel di browser
                 const dataBuffer = await file.arrayBuffer();
                 const workbook = XLSX.read(dataBuffer, { type: 'array' });
                 
                 let allValidData = [];
+                let detectedType = 'unknown';
+
                 for (let i = 0; i < workbook.SheetNames.length; i++) {
                     const sheetName = workbook.SheetNames[i];
                     const worksheet = workbook.Sheets[sheetName];
                     let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
 
-                    // Bersihkan baris hantu secara dinamis & case-insensitive
                     jsonData = jsonData.filter(row => {
                         const keys = Object.keys(row).map(k => k.toLowerCase());
                         const hasName = keys.some(k => k.includes('name') || k.includes('stasiun'));
                         const hasLat = keys.some(k => k.includes('lat'));
+                        const hasFreq = keys.some(k => k.includes('freq') || k === 'k' || k.includes('antena'));
+                        
+                        if (hasName) detectedType = 'fss';
+                        else if (hasFreq && !hasName) detectedType = 'bts';
+
                         return hasName || hasLat;
                     });
 
@@ -2203,18 +2288,25 @@
                     return;
                 }
 
-                const totalValidRows = allValidData.reduce((sum, s) => sum + s.data.length, 0);
+                let warningHtml = '';
+                if (targetType === 'fss' && detectedType === 'bts') {
+                    warningHtml = '<br><br><span style="color: #ef4444; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> PERINGATAN:</span> File ini terdeteksi sebagai <b>Stasiun BTS (5G/4G/2G)</b>, namun Anda mengunggahnya melalui tombol <b>Stasiun Bumi</b>. Apakah Anda yakin tidak salah tombol?';
+                } else if (targetType === 'bts' && detectedType === 'fss') {
+                    warningHtml = '<br><br><span style="color: #ef4444; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> PERINGATAN:</span> File ini terdeteksi sebagai <b>Stasiun Bumi / Satelit</b>, namun Anda mengunggahnya melalui tombol <b>BTS</b>. Apakah Anda yakin tidak salah tombol?';
+                }
 
-                // Konfirmasi user sebelum upload
+                const totalValidRows = allValidData.reduce((sum, s) => sum + s.data.length, 0);
+                const targetName = targetType === 'bts' ? 'BTS (5G/4G/2G)' : 'Stasiun Bumi (Satelit)';
+
                 const result = await Swal.fire({
-                    title: 'Konfirmasi Unggah',
-                    text: `Ditemukan ${totalValidRows} baris data stasiun bumi dari ${allValidData.length} sheet. Lanjutkan proses unggah ke server?`,
-                    icon: 'question',
+                    title: `Konfirmasi Unggah ${targetName}`,
+                    html: `Ditemukan <b>${totalValidRows}</b> baris data dari ${allValidData.length} sheet.${warningHtml}<br><br>Lanjutkan proses unggah ke server?`,
+                    icon: warningHtml ? 'warning' : 'question',
                     showCancelButton: true,
                     confirmButtonText: '<i class="fas fa-cloud-upload-alt"></i> Ya, Unggah',
                     cancelButtonText: 'Batal',
-                    confirmButtonColor: '#10b981',
-                    cancelButtonColor: '#ef4444'
+                    confirmButtonColor: warningHtml ? '#ef4444' : '#10b981',
+                    cancelButtonColor: '#64748b'
                 });
 
                 if (!result.isConfirmed) {
@@ -2227,6 +2319,8 @@
                 let totalInserted = 0;
                 let totalSkipped = 0;
                 let sheetsProcessed = 0;
+                
+                const apiUrl = targetType === 'bts' ? '/api/stations/upload-bts' : '/api/stations/upload';
 
                 for (let sheet of allValidData) {
                     const jsonData = sheet.data;
@@ -2237,7 +2331,7 @@
                         const chunkData = jsonData.slice(c * CHUNK_SIZE, (c + 1) * CHUNK_SIZE);
                         uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sheet (${sheet.index + 1}/${workbook.SheetNames.length}) Chunk (${c + 1}/${totalChunks})...`;
 
-                        const res = await fetch('/api/stations/upload', {
+                        const res = await fetch(apiUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ data: chunkData })
@@ -2259,7 +2353,7 @@
 
                 Swal.fire({
                     title: 'Upload Selesai!',
-                    html: `Total Sheet diproses: <b>${sheetsProcessed}</b><br>Total Data Baru: <b>${totalInserted}</b><br>Data Duplikat/Dilewati: <b>${totalSkipped}</b>`,
+                    html: `Tipe Data: <b>${targetName}</b><br>Total Sheet diproses: <b>${sheetsProcessed}</b><br>Total Data Baru: <b>${totalInserted}</b><br>Data Duplikat/Dilewati: <b>${totalSkipped}</b>`,
                     icon: 'success',
                     confirmButtonText: 'OK'
                 }).then(() => {
@@ -2267,11 +2361,11 @@
                 });
             } catch (error) {
                 console.error(error);
-                alert('Terjadi kesalahan saat mengupload data');
+                Swal.fire('Error', 'Terjadi kesalahan saat mengupload data: ' + error.message, 'error');
             } finally {
                 uploadBtn.innerHTML = originalText;
                 uploadBtn.disabled = false;
-                input.value = ''; // Reset input
+                input.value = '';
             }
         }
     </script>
