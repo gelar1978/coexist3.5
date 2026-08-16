@@ -2144,7 +2144,12 @@
                 for (let i = 0; i < workbook.SheetNames.length; i++) {
                     const sheetName = workbook.SheetNames[i];
                     const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+                    let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+
+                    // Bersihkan baris yang kosong (misal akibat ada sel yang pernah diwarnai di Excel sampai baris sejuta)
+                    jsonData = jsonData.filter(row => {
+                        return Object.values(row).some(val => val !== null && val !== undefined && String(val).trim() !== '');
+                    });
 
                     if (jsonData.length === 0) continue;
 
