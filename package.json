@@ -18,7 +18,9 @@
     "express-session": "^1.19.0",
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.3",
-    "mysql2": "^3.23.2"
+    "multer": "^2.2.0",
+    "mysql2": "^3.23.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

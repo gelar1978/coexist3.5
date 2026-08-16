@@ -11,6 +11,7 @@ const dotenv = require('dotenv');
 const { testConnection } = require('./db/database');
 const authRoutes = require('./routes/auth');
 const calculatorRoutes = require('./routes/calculator');
+const stationsRoutes = require('./routes/stations');
 
 // Load environment variables
 dotenv.config();
@@ -114,6 +115,9 @@ app.use('/api/auth', authRoutes);
 
 // Calculator routes
 app.use('/api/calculator', calculatorRoutes);
+
+// Stations routes
+app.use('/api/stations', stationsRoutes);
 
 // ==================== PAGE ROUTES ====================
 

@@ -16,8 +16,7 @@
     <!-- Leaflet JS & MarkerCluster JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <!-- Embedded Ground Stations Dataset -->
-    <script src="data/stasiun_bumi.js?v=2.0"></script>
+    <!-- Data stasiun bumi sekarang diambil via API (MySQL) -->
     <style>
         * {
             margin: 0;
@@ -1335,6 +1334,10 @@
                     <button class="btn-map btn-map-secondary" onclick="resetMap()">
                         <i class="fas fa-rotate-left"></i> Reset Filter
                     </button>
+                    <button class="btn-map" onclick="document.getElementById('uploadExcelFile').click()" style="background-color: #10b981; color: white;">
+                        <i class="fas fa-file-excel"></i> Upload Data
+                    </button>
+                    <input type="file" id="uploadExcelFile" style="display:none" accept=".xlsx, .xls" onchange="uploadStationsExcel(this)">
                 </div>
 
                 <div id="map"></div>
@@ -1804,12 +1807,13 @@
             document.getElementById('mapStatus').textContent = '🔄 Memuat data stasiun bumi...';
 
             try {
-                // Priority: Use embedded STASIUN_BUMI_DATA if available, fallback to fetch JSON
-                if (window.STASIUN_BUMI_DATA && Array.isArray(window.STASIUN_BUMI_DATA) && window.STASIUN_BUMI_DATA.length > 0) {
-                    allStationsData = window.STASIUN_BUMI_DATA;
+                // Fetch from database API
+                const res = await fetch('/api/stations', { credentials: 'omit' });
+                const data = await res.json();
+                if (data.success && data.data) {
+                    allStationsData = data.data;
                 } else {
-                    const res = await fetch('/data/stasiun_bumi.json');
-                    allStationsData = await res.json();
+                    allStationsData = [];
                 }
 
                 updateStatCards(allStationsData);
@@ -2115,6 +2119,42 @@
 
         console.log('✅ Dashboard loaded successfully');
         console.log('🗺️ Tab Peta siap digunakan');
+
+        // ==================== UPLOAD EXCEL ====================
+        async function uploadStationsExcel(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('excelFile', file);
+
+            const uploadBtn = input.previousElementSibling;
+            const originalText = uploadBtn.innerHTML;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
+            uploadBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/stations/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Refresh peta
+                } else {
+                    alert('Gagal: ' + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Terjadi kesalahan saat mengupload data');
+            } finally {
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+                input.value = ''; // Reset input
+            }
+        }
     </script>
 </body>
 
