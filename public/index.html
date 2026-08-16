@@ -2405,26 +2405,39 @@
             if (!showCircles || radiusVal === 0) return;
 
             const operatorFilter = document.getElementById('filterOperator') ? document.getElementById('filterOperator').value : 'all';
+            const freqBand = document.getElementById('filterFreqBand') ? document.getElementById('filterFreqBand').value : 'all';
             const query = document.getElementById('searchLocation') ? document.getElementById('searchLocation').value.trim().toLowerCase() : '';
 
             const activeStations = allStationsData.filter(s => {
                 let validCoord = typeof s.lat === 'number' && typeof s.lng === 'number' && !isNaN(s.lat) && !isNaN(s.lng) && s.lat >= -90 && s.lat <= 90 && s.lng >= -180 && s.lng <= 180;
                 if (!validCoord) return false;
-                let matchOp = (operatorFilter === 'all' || s.operator === operatorFilter);
+                
+                s.operatorGroup = getOperatorGroup(s.operator);
+                let matchOp = (operatorFilter === 'all' || s.operatorGroup === operatorFilter);
+                
+                s.freqClass = getFreqClassification(s.frekuensi);
+                let matchFreqBand = true;
+                if (freqBand !== 'all') {
+                    if (freqBand === 'E-CBand+C-Band') {
+                        matchFreqBand = (s.freqClass === 'E-CBand' || s.freqClass === 'C-Band');
+                    } else {
+                        matchFreqBand = (s.freqClass === freqBand);
+                    }
+                }
+
                 let matchQuery = true;
                 if (query) {
                     let idMatch = (s.id && String(s.id).toLowerCase().includes(query));
                     let alamatMatch = (s.alamat && String(s.alamat).toLowerCase().includes(query));
                     let satelitMatch = (s.satelit && String(s.satelit).toLowerCase().includes(query));
-                    matchQuery = idMatch || alamatMatch || satelitMatch;
+                    let operatorMatch = (s.operatorGroup && String(s.operatorGroup).toLowerCase().includes(query));
+                    matchQuery = idMatch || alamatMatch || satelitMatch || operatorMatch;
                 }
-                return matchOp && matchQuery;
+                return matchOp && matchFreqBand && matchQuery;
             });
 
             activeStations.forEach(s => {
-                let color = '#3b82f6'; // default blue (BRIsat)
-                if (s.operator === 'Telkom Group') color = '#ef4444'; // red
-                else if (s.operator === 'PSN') color = '#10b981'; // green
+                let color = operatorColors[s.operatorGroup] || (s.operatorGroup === 'Lainnya' ? '#64748b' : stringToColor(s.operatorGroup));
 
                 const circle = L.circle([s.lat, s.lng], {
                     radius: radiusVal,
