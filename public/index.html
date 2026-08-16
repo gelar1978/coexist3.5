@@ -2148,25 +2148,32 @@
 
                     if (jsonData.length === 0) continue;
 
-                    uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Mengupload Sheet (${i + 1}/${workbook.SheetNames.length})...`;
+                    // Chunk the data (1000 baris per request) agar tidak kena limit payload size
+                    const CHUNK_SIZE = 1000;
+                    const totalChunks = Math.ceil(jsonData.length / CHUNK_SIZE);
 
-                    // Kirim JSON array ke server
-                    const res = await fetch('/api/stations/upload', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ data: jsonData })
-                    });
-                    
-                    const data = await res.json();
-                    if (data.success) {
-                        sheetsProcessed++;
-                        // Ekstrak angka dari string "Berhasil memproses Excel. Data baru dimasukkan: X. Data dilewati/duplikat: Y."
-                        const matchInsert = data.message.match(/dimasukkan:\s*(\d+)/);
-                        const matchSkip = data.message.match(/duplikat:\s*(\d+)/);
-                        if (matchInsert && matchInsert[1]) totalInserted += parseInt(matchInsert[1]);
-                        if (matchSkip && matchSkip[1]) totalSkipped += parseInt(matchSkip[1]);
+                    for (let c = 0; c < totalChunks; c++) {
+                        const chunkData = jsonData.slice(c * CHUNK_SIZE, (c + 1) * CHUNK_SIZE);
+                        uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sheet (${i + 1}/${workbook.SheetNames.length}) Chunk (${c + 1}/${totalChunks})...`;
+
+                        const res = await fetch('/api/stations/upload', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ data: chunkData })
+                        });
+                        
+                        const data = await res.json();
+                        if (data.success) {
+                            // Hitung untuk chunk pertama di sheet ini agar tidak dobel hitung sheet
+                            if (c === 0) sheetsProcessed++;
+                            
+                            const matchInsert = data.message.match(/dimasukkan:\s*(\d+)/);
+                            const matchSkip = data.message.match(/duplikat:\s*(\d+)/);
+                            if (matchInsert && matchInsert[1]) totalInserted += parseInt(matchInsert[1]);
+                            if (matchSkip && matchSkip[1]) totalSkipped += parseInt(matchSkip[1]);
+                        } else {
+                            throw new Error(data.message || 'Gagal memproses data');
+                        }
                     }
                 }
 
