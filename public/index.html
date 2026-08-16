@@ -1273,7 +1273,7 @@
             </div>
 
             <div class="card card-full">
-                <h3>🗺️ Peta Stasiun Bumi Trial 5G Bandung</h3>
+                <h3>🗺️ Peta Stasiun Bumi dan Base Station Operator Seluler Indonesia</h3>
                 <p class="card-subtitle">Visualisasi lokasi & atribut penerima satelit stasiun bumi</p>
 
                 <!-- Coverage Radius Slider Control Box -->
@@ -1284,7 +1284,7 @@
                         </div>
                         <div class="radius-toggle-wrap">
                             <label class="cluster-toggle">
-                                <input type="checkbox" id="toggleCircles" checked onchange="updateCirclesRadius()">
+                                <input type="checkbox" id="toggleCircles" onchange="updateCirclesRadius()">
                                 <i class="fas fa-circle-notch"></i> Tampilkan Lingkaran
                             </label>
                         </div>
@@ -1923,7 +1923,7 @@
             const grid = document.getElementById('dynamicStatsGrid');
             if (grid) {
                 let html = `
-                    <div class="map-stat-card">
+                    <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Semua Stasiun Bumi', allStationsData)">
                         <div class="map-stat-icon stat-icon-total" style="background: #334155; color: white;">
                             <i class="fas fa-satellite-dish"></i>
                         </div>
@@ -1938,8 +1938,9 @@
                 topOps.forEach(op => {
                     const color = operatorColors[op] || operatorColors['Lainnya'];
                     const icon = operatorIcons[op] || operatorIcons['Lainnya'];
+                    const safeOpName = op.replace(/'/g, "\\'");
                     html += `
-                        <div class="map-stat-card">
+                        <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Stasiun Bumi ${safeOpName}', allStationsData.filter(s => getOperatorGroup(s.operator) === '${safeOpName}'))">
                             <div class="map-stat-icon" style="background: ${color}; color: white; display:flex; align-items:center; justify-content:center;">
                                 <i class="fas ${icon}"></i>
                             </div>
