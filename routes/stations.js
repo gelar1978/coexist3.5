@@ -23,23 +23,15 @@ router.get('/', async (req, res) => {
     }
 });
 
-// ==================== UPLOAD EXCEL ====================
-router.post('/upload', authenticate, upload.single('excelFile'), async (req, res) => {
+// ==================== UPLOAD EXCEL (Parse JSON) ====================
+// Kita tidak pakai multer karena proxy PHP tidak support multipart/form-data dengan baik.
+// Client (browser) akan mem-parse Excel dan mengirim array JSON ke endpoint ini.
+router.post('/upload', authenticate, async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: 'File Excel tidak ditemukan' });
-        }
-
-        // Baca file excel dari memory
-        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+        const rawData = req.body.data;
         
-        // Convert ke JSON Array (raw)
-        const rawData = xlsx.utils.sheet_to_json(sheet, { defval: null });
-        
-        if (!rawData || rawData.length === 0) {
-            return res.status(400).json({ success: false, message: 'File Excel kosong' });
+        if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+            return res.status(400).json({ success: false, message: 'Data Excel kosong atau tidak valid' });
         }
 
         let insertedCount = 0;

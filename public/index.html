@@ -16,6 +16,8 @@
     <!-- Leaflet JS & MarkerCluster JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- SheetJS for Excel Parsing in Browser -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <!-- Data stasiun bumi sekarang diambil via API (MySQL) -->
     <style>
         * {
@@ -2120,23 +2122,38 @@
         console.log('✅ Dashboard loaded successfully');
         console.log('🗺️ Tab Peta siap digunakan');
 
-        // ==================== UPLOAD EXCEL ====================
+        // ==================== UPLOAD EXCEL (Client-Side Parsing) ====================
         async function uploadStationsExcel(input) {
             const file = input.files[0];
             if (!file) return;
 
-            const formData = new FormData();
-            formData.append('excelFile', file);
-
             const uploadBtn = input.previousElementSibling;
             const originalText = uploadBtn.innerHTML;
-            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             uploadBtn.disabled = true;
 
             try {
+                // Baca Excel di browser
+                const dataBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(dataBuffer, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+
+                if (jsonData.length === 0) {
+                    alert('File Excel kosong atau format salah!');
+                    return;
+                }
+
+                uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
+
+                // Kirim JSON array ke server
                 const res = await fetch('/api/stations/upload', {
                     method: 'POST',
-                    body: formData
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ data: jsonData })
                 });
                 
                 const data = await res.json();
