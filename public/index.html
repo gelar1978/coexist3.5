@@ -1244,7 +1244,7 @@
                         </button>
                         <div
                             style="background: #f8fafc; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">
-                            💡 <b>Fitur Peta:</b> Pemetaan 384 lokasi stasiun bumi (Telkom Group, PSN, BRI), filter
+                            💡 <b>Fitur Peta:</b> Pemetaan 384 lokasi stasiun bumi (Telkom Group, PSN, BRIsat), filter
                             operator, slider radius coverage (0-2000m), serta citra satelit Esri/Google.
                         </div>
                     </div>
@@ -1744,7 +1744,7 @@
 
         // Custom colored antenna dish markers for operators
         function createCustomMarkerIcon(operator) {
-            let color = '#3b82f6'; // default blue (BRI)
+            let color = '#3b82f6'; // default blue (BRIsat)
             if (operator === 'Telkom Group') color = '#ef4444'; // red
             else if (operator === 'PSN') color = '#10b981'; // green
 
@@ -1907,7 +1907,7 @@
         const operatorColors = {
             'Telkom Group': '#ef4444',
             'PSN': '#10b981',
-            'BRI': '#3b82f6',
+            'BRIsat': '#3b82f6',
             'Lintasarta': '#f59e0b',
             'Tangara Mitrakom': '#8b5cf6',
             'Inti Prima': '#ec4899',
@@ -1922,7 +1922,7 @@
         const operatorIcons = {
             'Telkom Group': 'fa-tower-cell',
             'PSN': 'fa-satellite',
-            'BRI': 'fa-building-columns',
+            'BRIsat': 'fa-building-columns',
             'Lintasarta': 'fa-network-wired',
             'Tangara Mitrakom': 'fa-wifi',
             'Inti Prima': 'fa-server',
@@ -1936,7 +1936,7 @@
             if (!op) return 'Lainnya';
             const lower = op.toLowerCase();
             if (lower.includes('telkom') || lower.includes('telekomunikasi')) return 'Telkom Group';
-            if (lower.includes('bri') || lower.includes('rakyat indonesia')) return 'BRI';
+            if (lower.includes('bri') || lower.includes('rakyat indonesia')) return 'BRIsat';
             if (lower.includes('psn') || lower.includes('pasifik satelit') || lower.includes('satelit nusantara')) return 'PSN';
             if (lower.includes('lintasarta')) return 'Lintasarta';
             if (lower.includes('tangara')) return 'Tangara Mitrakom';
@@ -2339,7 +2339,7 @@
             });
 
             activeStations.forEach(s => {
-                let color = '#3b82f6'; // default blue (BRI)
+                let color = '#3b82f6'; // default blue (BRIsat)
                 if (s.operator === 'Telkom Group') color = '#ef4444'; // red
                 else if (s.operator === 'PSN') color = '#10b981'; // green
 
