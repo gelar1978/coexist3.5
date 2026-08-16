@@ -2136,32 +2136,45 @@
                 // Baca Excel di browser
                 const dataBuffer = await file.arrayBuffer();
                 const workbook = XLSX.read(dataBuffer, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+                
+                let totalInserted = 0;
+                let totalSkipped = 0;
+                let sheetsProcessed = 0;
 
-                if (jsonData.length === 0) {
-                    alert('File Excel kosong atau format salah!');
-                    return;
+                for (let i = 0; i < workbook.SheetNames.length; i++) {
+                    const sheetName = workbook.SheetNames[i];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+
+                    if (jsonData.length === 0) continue;
+
+                    uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Mengupload Sheet (${i + 1}/${workbook.SheetNames.length})...`;
+
+                    // Kirim JSON array ke server
+                    const res = await fetch('/api/stations/upload', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ data: jsonData })
+                    });
+                    
+                    const data = await res.json();
+                    if (data.success) {
+                        sheetsProcessed++;
+                        // Ekstrak angka dari string "Berhasil memproses Excel. Data baru dimasukkan: X. Data dilewati/duplikat: Y."
+                        const matchInsert = data.message.match(/dimasukkan:\s*(\d+)/);
+                        const matchSkip = data.message.match(/duplikat:\s*(\d+)/);
+                        if (matchInsert && matchInsert[1]) totalInserted += parseInt(matchInsert[1]);
+                        if (matchSkip && matchSkip[1]) totalSkipped += parseInt(matchSkip[1]);
+                    }
                 }
 
-                uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
-
-                // Kirim JSON array ke server
-                const res = await fetch('/api/stations/upload', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ data: jsonData })
-                });
-                
-                const data = await res.json();
-                if (data.success) {
-                    alert(data.message);
+                if (sheetsProcessed > 0) {
+                    alert(`Upload selesai! Total Sheet diproses: ${sheetsProcessed}.\nTotal Data Baru: ${totalInserted}.\nTotal Duplikat/Dilewati: ${totalSkipped}.`);
                     location.reload(); // Refresh peta
                 } else {
-                    alert('Gagal: ' + data.message);
+                    alert('Gagal: File Excel kosong atau format tidak sesuai (di semua sheet).');
                 }
             } catch (error) {
                 console.error(error);
