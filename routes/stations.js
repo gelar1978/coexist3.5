@@ -98,7 +98,7 @@ router.post('/upload', authenticate, upload.single('excelFile'), async (req, res
 
         res.json({
             success: true,
-            message: \`Berhasil memproses Excel. Data baru dimasukkan: \${insertedCount}. Data dilewati/duplikat: \${skippedCount}.\`
+            message: `Berhasil memproses Excel. Data baru dimasukkan: ${insertedCount}. Data dilewati/duplikat: ${skippedCount}.`
         });
 
     } catch (error) {
