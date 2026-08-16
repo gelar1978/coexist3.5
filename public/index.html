@@ -1946,7 +1946,17 @@
             if (lower.includes('skyreach')) return 'Skyreach';
             if (lower.includes('satkomindo')) return 'Satkomindo';
             if (lower.includes('dwi tunggal') || lower.includes('dtp')) return 'DTP';
-            return 'Lainnya';
+            return op; // Kembalikan nama aslinya daripada 'Lainnya'
+        }
+
+        // Fungsi bantuan untuk mendapatkan warna unik secara konsisten berdasarkan nama
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+            return '#' + '00000'.substring(0, 6 - c.length) + c;
         }
 
         let activeLegendControl = null;
@@ -1976,8 +1986,8 @@
 
                 const topOps = sortedOperators.slice(0, 5);
                 topOps.forEach(op => {
-                    const color = operatorColors[op] || operatorColors['Lainnya'];
-                    const icon = operatorIcons[op] || operatorIcons['Lainnya'];
+                    const color = operatorColors[op] || (op === 'Lainnya' ? '#64748b' : stringToColor(op));
+                    const icon = operatorIcons[op] || 'fa-satellite-dish';
                     const safeOpName = op.replace(/'/g, "\\'");
                     html += `
                         <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Stasiun Bumi ${safeOpName}', allStationsData.filter(s => getOperatorGroup(s.operator) === '${safeOpName}'))">
@@ -2007,7 +2017,7 @@
                 `;
                 
                 sortedOperators.forEach(op => {
-                    const color = operatorColors[op] || operatorColors['Lainnya'];
+                    const color = operatorColors[op] || (op === 'Lainnya' ? '#64748b' : stringToColor(op));
                     legendHtml += `
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                             <span style="width: 12px; height: 12px; border-radius: 50%; background: ${color}; display: inline-block;"></span>
