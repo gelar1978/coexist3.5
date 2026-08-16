@@ -1258,6 +1258,9 @@
             <div class="map-stats-grid" id="dynamicStatsGrid">
                 <!-- Data akan di-generate secara dinamis oleh updateStatCards() -->
             </div>
+            <div class="map-stats-grid" id="freqStatsGrid" style="margin-top: 15px;">
+                <!-- Data frekuensi akan di-generate di sini -->
+            </div>
             <div class="map-stats-grid" id="btsStatsGrid" style="margin-top: 15px;">
                 <!-- Data BTS akan di-generate di sini -->
             </div>
@@ -1323,6 +1326,13 @@
                 <div class="map-controls">
                     <select id="filterOperator" onchange="filterMapData()">
                         <option value="all">🌐 Semua Operator</option>
+                    </select>
+                    <select id="filterFreqBand" onchange="filterMapData()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; font-size: 14px; background: white; font-weight: 500; cursor: pointer; color: #1e293b;">
+                        <option value="all">📡 Semua Band</option>
+                        <option value="E-CBand">E-CBand (3.4 - 3.7 GHz)</option>
+                        <option value="C-Band">C-Band (3.7 - 4.2 GHz)</option>
+                        <option value="E-CBand+C-Band">E-CBand + C-Band</option>
+                        <option value="Non C-Band">Non C-Band</option>
                     </select>
                     <input type="text" id="searchLocation"
                         placeholder="Cari ID, Alamat, atau Satelit..."
@@ -1743,13 +1753,19 @@
         let userLocationMarker = null;
 
         // Custom colored antenna dish markers for operators
-        function createCustomMarkerIcon(operator) {
-            let color = '#3b82f6'; // default blue (BRIsat)
-            if (operator === 'Telkom Group') color = '#ef4444'; // red
-            else if (operator === 'PSN') color = '#10b981'; // green
+        function createCustomMarkerIcon(operator, freqClass) {
+            let color = operatorColors[operator] || (operator === 'Lainnya' ? '#64748b' : stringToColor(operator));
+
+            let freqLetter = '';
+            let letterBg = '#ffffff';
+            let letterColor = '#0f172a';
+            if (freqClass === 'E-CBand') { freqLetter = 'E'; letterBg = '#eab308'; letterColor = '#ffffff'; }
+            else if (freqClass === 'C-Band') { freqLetter = 'C'; letterBg = '#14b8a6'; letterColor = '#ffffff'; }
+            else if (freqClass === 'Non C-Band') { freqLetter = 'N'; letterBg = '#64748b'; letterColor = '#ffffff'; }
 
             const svgContent = `
                 <div style="
+                    position: relative;
                     background: ${color};
                     width: 32px;
                     height: 32px;
@@ -1766,6 +1782,9 @@
                         <path d="M4 4a16 16 0 0 1 16 16" />
                         <circle cx="5" cy="19" r="1.5" fill="#ffffff" />
                     </svg>
+                    <div style="position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; background: ${letterBg}; color: ${letterColor}; font-size: 10px; font-weight: 900; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                        ${freqLetter}
+                    </div>
                 </div>
             `;
 
@@ -1960,6 +1979,65 @@
         }
 
         let activeLegendControl = null;
+
+        function getFreqClassification(freqStr) {
+            if (!freqStr || freqStr === '-') return 'Non C-Band';
+            // Ekstrak angka dari string (contoh: "3420 MHz" -> 3420, "3.5 GHz" -> 3.5)
+            const match = String(freqStr).match(/[\d.]+/);
+            if (!match) return 'Non C-Band';
+            
+            let val = parseFloat(match[0]);
+            // Asumsi normalisasi: jika nilai < 100, asumsikan itu adalah GHz dan ubah ke MHz
+            if (val > 0 && val < 100) val = val * 1000;
+
+            if (val >= 3400 && val <= 3700) return 'E-CBand';
+            if (val > 3700 && val <= 4200) return 'C-Band';
+            return 'Non C-Band';
+        }
+
+        function updateFreqStatCards(data) {
+            const counts = { 'E-CBand': 0, 'C-Band': 0, 'Non C-Band': 0 };
+            
+            data.forEach(s => {
+                s.freqClass = getFreqClassification(s.frekuensi);
+                if (counts[s.freqClass] !== undefined) {
+                    counts[s.freqClass]++;
+                }
+            });
+
+            const grid = document.getElementById('freqStatsGrid');
+            if (!grid) return;
+
+            grid.innerHTML = `
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Frekuensi E-CBand (3.4-3.7 GHz)', allStationsData.filter(s => getFreqClassification(s.frekuensi) === 'E-CBand'))">
+                    <div class="map-stat-icon" style="background: #eab308; color: white;">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${counts['E-CBand']}</div>
+                        <div class="stat-label">E-CBand</div>
+                    </div>
+                </div>
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Frekuensi C-Band (3.7-4.2 GHz)', allStationsData.filter(s => getFreqClassification(s.frekuensi) === 'C-Band'))">
+                    <div class="map-stat-icon" style="background: #14b8a6; color: white;">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${counts['C-Band']}</div>
+                        <div class="stat-label">C-Band</div>
+                    </div>
+                </div>
+                <div class="map-stat-card" style="cursor:pointer;" onclick="openModalTable('Frekuensi Non C-Band', allStationsData.filter(s => getFreqClassification(s.frekuensi) === 'Non C-Band'))">
+                    <div class="map-stat-icon" style="background: #64748b; color: white;">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div class="map-stat-info">
+                        <div class="stat-value">${counts['Non C-Band']}</div>
+                        <div class="stat-label">Non C-Band</div>
+                    </div>
+                </div>
+            `;
+        }
 
         function updateStatCardsAndLegend(data) {
             const counts = {};
@@ -2284,7 +2362,8 @@
                     </div>
                 `;
 
-                const markerIcon = createCustomMarkerIcon(s.operator);
+                s.freqClass = s.freqClass || getFreqClassification(s.frekuensi);
+                const markerIcon = createCustomMarkerIcon(s.operatorGroup, s.freqClass);
                 const marker = L.marker([s.lat, s.lng], {icon: markerIcon})
                     .bindPopup(popupContent);
 
@@ -2400,6 +2479,7 @@
 
         function filterMapData() {
             const operator = document.getElementById('filterOperator').value;
+            const freqBand = document.getElementById('filterFreqBand') ? document.getElementById('filterFreqBand').value : 'all';
             const query = document.getElementById('searchLocation').value.trim().toLowerCase();
             
             const showFss = document.getElementById('toggleFss') ? document.getElementById('toggleFss').checked : true;
@@ -2414,6 +2494,17 @@
 
                     s.operatorGroup = getOperatorGroup(s.operator);
                     let matchOperator = (operator === 'all' || s.operatorGroup === operator);
+                    
+                    s.freqClass = getFreqClassification(s.frekuensi);
+                    let matchFreqBand = true;
+                    if (freqBand !== 'all') {
+                        if (freqBand === 'E-CBand+C-Band') {
+                            matchFreqBand = (s.freqClass === 'E-CBand' || s.freqClass === 'C-Band');
+                        } else {
+                            matchFreqBand = (s.freqClass === freqBand);
+                        }
+                    }
+
                     let matchQuery = true;
 
                     if (query) {
@@ -2423,7 +2514,7 @@
                         let operatorMatch = (s.operatorGroup && String(s.operatorGroup).toLowerCase().includes(query));
                         matchQuery = idMatch || alamatMatch || satelitMatch || operatorMatch;
                     }
-                    return matchOperator && matchQuery;
+                    return matchOperator && matchFreqBand && matchQuery;
                 });
             }
 
@@ -2452,8 +2543,8 @@
             renderStations(filteredFss);
             renderBtsStations(filteredBts);
             
-            // Only update stats for FSS for now (we'll add a new stat row for BTS next)
             updateStatCardsAndLegend(filteredFss);
+            updateFreqStatCards(filteredFss);
             updateBtsStatCards(filteredBts);
 
             document.getElementById('mapStatus').textContent = `🔍 Menampilkan ${filteredFss.length} Stasiun Bumi dan ${filteredBts.length} BTS.`;
