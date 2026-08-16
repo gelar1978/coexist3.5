@@ -82,23 +82,33 @@ router.post('/upload', authenticate, async (req, res) => {
 
         // Loop setiap baris dan masukkan ke database
         for (const row of rawData) {
-            // Mapping nama kolom dinamis (karena ada Ext C-band & Std C-band)
-            const name = row['Earth Station Name'] || row['Name'] || row['Nama Stasiun'];
-            const lat = row['Lat Dec'] || row['Latitude'];
-            const lng = row['Long Dec'] || row['Longitude'];
-            
-            // Opsional
-            const stationId = row['ID Stasiun Bumi'] || null;
-            const operatingAgency = row['Operating Agency'] || null;
-            const address = row['Alamat'] || null;
-            const province = row['Provinsi'] || null;
-            const usageType = row['Jenis Penggunaan'] || null;
-            const antenna = row['Antenna Diameter'] || null;
-            const bandwidth = row['Bandwidth (MHz)'] || null;
-            const frequency = row['Frequency (MHz)'] || row['Downlink (MHz)'] || null;
-            const isr = row['Nomor ISR'] || null;
+            // Mapping nama kolom dinamis & case-insensitive
+            const lowerRow = {};
+            for (let key in row) {
+                lowerRow[key.toLowerCase().trim()] = row[key];
+            }
 
-            // Validasi data wajib
+            const lat = lowerRow['lat dec'] || lowerRow['latitude'] || lowerRow['lat'];
+            const lng = lowerRow['long dec'] || lowerRow['longitude'] || lowerRow['long'] || lowerRow['lon'];
+            
+            // Nama stasiun bumi wajib ada, jika tidak ada di Excel (spt file Telkom University), gunakan fallback
+            let name = lowerRow['earth station name'] || lowerRow['name'] || lowerRow['nama stasiun'] || lowerRow['id stasiun bumi'] || null;
+            if (!name && lat != null && lng != null) {
+                name = `Station-${lat}-${lng}`;
+            }
+
+            // Opsional
+            const stationId = lowerRow['id stasiun bumi'] || lowerRow['id'] || null;
+            const operatingAgency = lowerRow['operating agency'] || lowerRow['kdepum'] || null;
+            const address = lowerRow['alamat'] || null;
+            const province = lowerRow['provinsi'] || null;
+            const usageType = lowerRow['jenis penggunaan'] || null;
+            const antenna = lowerRow['antenna diameter'] || lowerRow['antena_h'] || null;
+            const bandwidth = lowerRow['bandwidth (mhz)'] || null;
+            const frequency = lowerRow['frequency (mhz)'] || lowerRow['downlink (mhz)'] || lowerRow['downlink'] || lowerRow['freq'] || null;
+            const isr = lowerRow['nomor isr'] || null;
+
+            // Validasi data wajib (jika koordinat tidak ada, skip)
             if (!name || lat == null || lng == null) {
                 skippedCount++;
                 continue;

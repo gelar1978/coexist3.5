@@ -2146,11 +2146,11 @@
                     const worksheet = workbook.Sheets[sheetName];
                     let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
 
-                    // Bersihkan baris hantu (ghost rows) akibat rumus formula yang di-drag sampai sejuta baris
+                    // Bersihkan baris hantu secara dinamis & case-insensitive
                     jsonData = jsonData.filter(row => {
-                        const hasName = row['Earth Station Name'] || row['Name'] || row['Nama Stasiun'];
-                        const hasLat = row['Lat Dec'] || row['Latitude'] || row['lat'];
-                        // Baris dianggap valid jika memiliki nama ATAU koordinat
+                        const keys = Object.keys(row).map(k => k.toLowerCase());
+                        const hasName = keys.some(k => k.includes('name') || k.includes('stasiun'));
+                        const hasLat = keys.some(k => k.includes('lat'));
                         return hasName || hasLat;
                     });
 
