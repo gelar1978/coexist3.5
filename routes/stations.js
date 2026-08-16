@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
         let isFirst = true;
         
         // Gunakan underlying non-promise connection untuk streaming agar hemat RAM (Anti-OOM)
-        const query = connection.connection.query('SELECT name, lat, lng, operating_agency, address, province, usage_type, frequency, bandwidth FROM stations');
+        const query = connection.connection.query('SELECT name, lat, lng, station_id, operating_agency, address, province, usage_type, antenna_diameter, frequency, bandwidth, isr_number FROM stations');
         
         query.on('error', (err) => {
             console.error('Stream error:', err);
@@ -38,12 +38,15 @@ router.get('/', async (req, res) => {
                 id: row.name,
                 lat: parseFloat(row.lat),
                 lng: parseFloat(row.lng),
+                station_id: row.station_id || '-',
                 operator: row.operating_agency || 'Lainnya',
                 alamat: row.address || '-',
                 provinsi: row.province || '-',
                 satelit: row.usage_type || '-',
+                antena_h: row.antenna_diameter || '-', // map ke antena_h untuk kompatibilitas frontend
                 frekuensi: row.frequency || '-',
-                bandwidth: row.bandwidth || '-'
+                bandwidth: row.bandwidth || '-',
+                isr: row.isr_number || '-'
             };
             
             if (!isFirst) res.write(',');
