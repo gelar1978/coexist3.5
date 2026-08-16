@@ -2090,13 +2090,18 @@
             const head = document.getElementById('tableModalHead');
             const body = document.getElementById('tableModalBody');
             
+            const isBTS = dataArray.length > 0 && dataArray[0].technology !== undefined;
+            const thTeknologi = isBTS ? 'Teknologi' : 'Jenis Penggunaan';
+            const thTinggiAntena = isBTS ? 'Tinggi Antena' : 'Bandwidth';
+            const thLokasi = isBTS ? 'Lokasi (Kecamatan, Kota, Prov)' : 'Alamat / Provinsi';
+
             head.innerHTML = `
-                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">ID</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Nama / ID</th>
                 <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Operator</th>
-                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Teknologi</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">${thTeknologi}</th>
                 <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Frekuensi</th>
-                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Tinggi Antena</th>
-                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Lokasi (Kecamatan, Kota, Prov)</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">${thTinggiAntena}</th>
+                <th style="padding:12px; border-bottom:2px solid #cbd5e1;">${thLokasi}</th>
                 <th style="padding:12px; border-bottom:2px solid #cbd5e1;">Koordinat</th>
             `;
 
@@ -2110,14 +2115,29 @@
             const limit = Math.min(dataArray.length, 500);
             for (let i = 0; i < limit; i++) {
                 const s = dataArray[i];
+                
+                // Pemetaan dinamis untuk FSS vs BTS
+                const idName = s.name || s.id || '-';
+                const operator = s.operating_agency || s.operator || '-';
+                const techOrUsage = s.technology || s.usage_type || '-';
+                const freq = s.frequency || s.freq || '-';
+                const tinggiOrBandwidth = s.antena_h || s.bandwidth || '-';
+                
+                let locationStr = '-';
+                if (isBTS) {
+                    locationStr = [s.district, s.city, s.province].filter(Boolean).join(', ') || '-';
+                } else {
+                    locationStr = [s.address, s.province].filter(Boolean).join(', ') || '-';
+                }
+
                 html += `
                     <tr style="border-bottom:1px solid #e2e8f0;">
-                        <td style="padding:10px 12px;">${s.id}</td>
-                        <td style="padding:10px 12px; font-weight:600;">${s.operator || '-'}</td>
-                        <td style="padding:10px 12px;"><span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:12px; font-size:12px;">${s.technology || '-'}</span></td>
-                        <td style="padding:10px 12px;">${s.freq || '-'}</td>
-                        <td style="padding:10px 12px;">${s.antena_h || '-'}</td>
-                        <td style="padding:10px 12px;">${s.district}, ${s.city}, ${s.province}</td>
+                        <td style="padding:10px 12px;">${idName}</td>
+                        <td style="padding:10px 12px; font-weight:600;">${operator}</td>
+                        <td style="padding:10px 12px;"><span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:12px; font-size:12px;">${techOrUsage}</span></td>
+                        <td style="padding:10px 12px;">${freq}</td>
+                        <td style="padding:10px 12px;">${tinggiOrBandwidth}</td>
+                        <td style="padding:10px 12px;">${locationStr}</td>
                         <td style="padding:10px 12px;">${s.lat}, ${s.lng}</td>
                     </tr>
                 `;
