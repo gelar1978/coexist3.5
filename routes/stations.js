@@ -11,27 +11,58 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // ==================== GET ALL STATIONS ====================
 router.get('/', async (req, res) => {
+    let connection;
     try {
-        const [rows] = await pool.query('SELECT * FROM stations ORDER BY id DESC');
-        const mappedData = rows.map(r => ({
-            id: r.name,
-            lat: parseFloat(r.lat),
-            lng: parseFloat(r.lng),
-            operator: r.operating_agency || 'Lainnya',
-            alamat: r.address || '-',
-            provinsi: r.province || '-',
-            satelit: r.usage_type || '-',
-            frekuensi: r.frequency || '-',
-            bandwidth: r.bandwidth || '-'
-        }));
+        connection = await pool.getConnection();
         
-        res.json({
-            success: true,
-            data: mappedData
+        // Mulai response JSON
+        res.setHeader('Content-Type', 'application/json');
+        res.write('{"success":true,"data":[');
+        
+        let isFirst = true;
+        
+        // Gunakan underlying non-promise connection untuk streaming agar hemat RAM (Anti-OOM)
+        const query = connection.connection.query('SELECT name, lat, lng, operating_agency, address, province, usage_type, frequency, bandwidth FROM stations');
+        
+        query.on('error', (err) => {
+            console.error('Stream error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ success: false, message: 'Gagal mengambil data stasiun' });
+            } else {
+                res.end(']}'); // tutup paksa jika error di tengah jalan
+            }
         });
+
+        query.on('result', (row) => {
+            const mappedData = {
+                id: row.name,
+                lat: parseFloat(row.lat),
+                lng: parseFloat(row.lng),
+                operator: row.operating_agency || 'Lainnya',
+                alamat: row.address || '-',
+                provinsi: row.province || '-',
+                satelit: row.usage_type || '-',
+                frekuensi: row.frequency || '-',
+                bandwidth: row.bandwidth || '-'
+            };
+            
+            if (!isFirst) res.write(',');
+            res.write(JSON.stringify(mappedData));
+            isFirst = false;
+        });
+
+        query.on('end', () => {
+            res.write(']}');
+            res.end();
+            connection.release();
+        });
+
     } catch (error) {
         console.error('Error fetching stations:', error);
-        res.status(500).json({ success: false, message: 'Gagal mengambil data stasiun' });
+        if (connection) connection.release();
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: 'Gagal mengambil data stasiun' });
+        }
     }
 });
 
