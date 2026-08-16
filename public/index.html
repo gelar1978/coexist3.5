@@ -2117,17 +2117,17 @@
                 const s = dataArray[i];
                 
                 // Pemetaan dinamis untuk FSS vs BTS
-                const idName = s.name || s.id || '-';
-                const operator = s.operating_agency || s.operator || '-';
-                const techOrUsage = s.technology || s.usage_type || '-';
-                const freq = s.frequency || s.freq || '-';
+                const idName = s.id || s.name || '-';
+                const operator = s.operator || '-';
+                const techOrUsage = s.technology || s.satelit || '-';
+                const freq = s.freq || s.frekuensi || '-';
                 const tinggiOrBandwidth = s.antena_h || s.bandwidth || '-';
                 
                 let locationStr = '-';
                 if (isBTS) {
                     locationStr = [s.district, s.city, s.province].filter(Boolean).join(', ') || '-';
                 } else {
-                    locationStr = [s.address, s.province].filter(Boolean).join(', ') || '-';
+                    locationStr = [s.alamat, s.provinsi].filter(p => p && p !== '-').join(', ') || '-';
                 }
 
                 html += `
