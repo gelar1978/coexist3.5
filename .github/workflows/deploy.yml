@@ -31,4 +31,6 @@ jobs:
             npm install --production
             
             # Restart server Node.js via PM2
-            pm2 restart coexist35 --update-env
+            # Restart server Node.js via PM2 (kebal error)
+            pm2 restart coexist35 --update-env || pm2 start server.js --name coexist35
+            pm2 save
