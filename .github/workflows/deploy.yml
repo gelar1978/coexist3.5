@@ -1,0 +1,34 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            # Masuk ke folder project
+            cd ~/domains/harukaindonesia.id/coexist35
+            
+            # Tarik kode terbaru dari GitHub
+            git pull origin main
+            
+            # Muat NVM (Node Version Manager)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            
+            # Install dependensi (jika ada)
+            npm install --production
+            
+            # Restart server Node.js via PM2
+            pm2 restart coexist35 --update-env
